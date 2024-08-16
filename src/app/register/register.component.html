@@ -1,0 +1,33 @@
+<div class="">
+    <div class="w-full">
+      <h1 class="header text-2xl">Register</h1>
+      <form [formGroup]="signInForm" (ngSubmit)="onSubmit()" class="form-widget">
+        <div class="flex-col flex">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            formControlName="email"
+            class="inputField"
+            type="email"
+            placeholder="Your email"
+          />
+          <label for="password">Passwort</label>
+          <input
+            id="password"
+            formControlName="password"
+            class="inputField"
+            type="password"
+            placeholder="Your password"
+          />
+        </div>
+        <div class="mt-4">
+          <button type="submit">
+            {{ loading ? 'Loading' : 'Register' }}
+          </button>
+        </div>
+      </form>
+      <div class="switch">
+        <p>Already registered ? <a routerLink="/login">Login</a></p>
+      </div>
+    </div>
+  </div>
