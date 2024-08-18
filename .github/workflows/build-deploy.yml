@@ -98,7 +98,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -108,6 +108,9 @@ jobs:
         with:
           node-version: '18.x'
       
+      - name: Install dependencies
+        run: npm ci
+
       - name: Create environment.ts
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -120,16 +123,18 @@ jobs:
           echo "  supabaseKey: '${SUPABASE_KEY}'" >> src/environments/environment.ts
           echo "};" >> src/environments/environment.ts
 
-      - name: Install dependencies
-        run: npm ci
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v3
         with:
           static_site_generator: next
 
-      - run: npm install
-      - run: npm run build
+      - name: Build Angular project
+        run: npm run build -- --output-path=dist/family-app
+
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v1
+        with: 
+          path: "dist/family-app"
 
       - name: Deploy
         id: deployment
