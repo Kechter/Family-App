@@ -31,7 +31,7 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/family-app/",
+              "baseHref": "/",
               "budgets": [
                 {
                   "type": "initial",
