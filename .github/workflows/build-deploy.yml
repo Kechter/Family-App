@@ -86,6 +86,7 @@ jobs:
 
   deploy:
     needs: build
+    runs-on: ubuntu-latest
 
     permissions:
       contents: write
@@ -96,20 +97,33 @@ jobs:
       name: production
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
-
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: use node.js
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
       
-      - name: configure github pages
+      - name: Create environment.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          mkdir -p src/environments
+          echo "export const environment = {" > src/environments/environment.ts
+          echo "  production: false," >> src/environments/environment.ts
+          echo "  supabaseUrl: '${SUPABASE_URL}'," >> src/environments/environment.ts
+          echo "  supabaseKey: '${SUPABASE_KEY}'" >> src/environments/environment.ts
+          echo "};" >> src/environments/environment.ts
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v3
         with:
           static_site_generator: next
@@ -117,11 +131,11 @@ jobs:
       - run: npm install
       - run: npm run build
 
-      - name: upload artifacts
+      - name: Upload artifacts
         uses: actions/upload-pages-artifact@v1
         with: 
           path: "./out"
 
-      - name: deploy
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v1
