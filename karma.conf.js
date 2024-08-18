@@ -26,14 +26,8 @@ module.exports = function(config) {
       logLevel: config.LOG_INFO,
       autoWatch: true,
       browsers: ['ChromeHeadless'],
-      singleRun: false,
-      concurrency: Infinity,
-      customLaunchers: {
-        ChromeHeadless: {
-          base: 'ChromeHeadless',
-          flags: ['--no-sandbox']
-        }
-      }
+      singleRun: true,
+      concurrency: Infinity
     });
   };
   
