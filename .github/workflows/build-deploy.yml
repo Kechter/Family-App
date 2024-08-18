@@ -129,7 +129,7 @@ jobs:
           static_site_generator: next
 
       - name: Build Angular project
-        run: npm run build -- --output-path=dist/family-app
+        run: npm run build:prod -- --output-path=dist/family-app
 
       - name: Upload artifacts
         uses: actions/upload-pages-artifact@v1
