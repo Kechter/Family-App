@@ -35,3 +35,91 @@ jobs:
 
     - name: Build Angular project
       run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: dist
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-artifacts
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.15'
+        
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create environment.ts
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      run: |
+        mkdir -p src/environments
+        echo "export const environment = {" > src/environments/environment.ts
+        echo "  production: false," >> src/environments/environment.ts
+        echo "  supabaseUrl: '${SUPABASE_URL}'," >> src/environments/environment.ts
+        echo "  supabaseKey: '${SUPABASE_KEY}'" >> src/environments/environment.ts
+        echo "};" >> src/environments/environment.ts
+
+    - name: Run tests
+      run: npm test
+
+  deploy:
+    needs: test
+
+    permissions:
+      contents: write
+      pages: write     
+      id-token: write  
+
+    environment:
+      name: production
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.15'
+    
+    - name: Configure GitHub Pages
+      uses: actions/configure-pages@v3
+      with:
+        static_site_generator: angular
+    
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-artifacts
+
+    - name: Upload artifacts
+      uses: actions/upload-pages-artifact@v1
+      with:
+        path: dist 
+
+    - name: Deploy
+      id: deployment
+      uses: actions/deploy-pages@v1
