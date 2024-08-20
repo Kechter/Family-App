@@ -139,3 +139,7 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v1
+        
+      - name: Display index.html
+        run: cat dist/family-app/index.html
+        shell: bash
