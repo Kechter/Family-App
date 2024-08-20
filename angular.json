@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/family-app",
+            "outputPath": "dist/",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
@@ -31,7 +31,7 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/Family-App/%2F",
+              "baseHref": "/",
               "budgets": [
                 {
                   "type": "initial",
