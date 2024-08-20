@@ -140,6 +140,8 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v1
         
-      - name: Display index.html
-        run: cat dist/family-app/index.html
-        shell: bash
+      - name: Upload dist directory
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist-directory
+          path: dist/
