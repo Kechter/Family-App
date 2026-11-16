@@ -1,0 +1,162 @@
+<div class="page-container">
+
+  <!-- Compact Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Familien-Kalender</h1>
+      <p class="page-subtitle">Gemeinsame Termine & Feste</p>
+    </div>
+    <div class="shrink-0">
+      <app-button
+        variant="secondary"
+        (btnClick)="toggleCreatePanel()">
+        <span>{{ showCreatePanel ? '✕ Schließen' : '+ Neuer Termin' }}</span>
+      </app-button>
+    </div>
+  </div>
+
+  <!-- Global Feedback Banners -->
+  <app-alert
+    *ngIf="feedbackError"
+    type="error"
+    [message]="feedbackError"
+    [dismissible]="true"
+    (dismiss)="feedbackError = null">
+  </app-alert>
+
+  <app-alert
+    *ngIf="feedbackSuccess"
+    type="success"
+    [message]="feedbackSuccess"
+    [dismissible]="true"
+    (dismiss)="feedbackSuccess = null">
+  </app-alert>
+
+  <!-- Collapsible Event Creation Panel -->
+  <app-calendar-event-form
+    [open]="showCreatePanel"
+    [initialDate]="selectedDate || todayIso"
+    [isSaving]="actionInProgress"
+    (create)="saveNewEvent($event)"
+    (close)="showCreatePanel = false">
+  </app-calendar-event-form>
+
+  <!-- Main Content Grid: Interactive Calendar & Filters -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+    <!-- LEFT COLUMN: Month Grid (7 cols on lg) -->
+    <section class="lg:col-span-7">
+      <app-calendar-month-grid
+        [monthTitle]="monthTitle"
+        [cells]="calendarCells"
+        [selectedDate]="selectedDate"
+        [categoryDots]="categoryDots"
+        (prevMonth)="prevMonth()"
+        (nextMonth)="nextMonth()"
+        (goToToday)="goToToday()"
+        (selectDate)="selectDate($event)"
+        (clearSelectedDate)="clearDateSelection()">
+      </app-calendar-month-grid>
+    </section>
+
+    <!-- RIGHT COLUMN: Category Filter Chips & Events List (5 cols on lg) -->
+    <section class="lg:col-span-5 space-y-6">
+
+      <!-- Category Filter Chips -->
+      <app-card variant="compact" extraClass="space-y-3">
+        <div class="form-label !mb-0">
+          Kategorien
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <app-button
+            *ngFor="let cat of categories"
+            size="sm"
+            [variant]="selectedCategory === cat.id ? 'primary' : 'outline'"
+            (btnClick)="setCategory(cat.id)">
+            <span>{{ cat.icon }}</span>
+            <span>{{ cat.label }}</span>
+          </app-button>
+        </div>
+      </app-card>
+
+      <!-- View Mode Filter Tabs -->
+      <div class="bg-surface-alt p-1 rounded-btn border border-border flex items-center gap-1 text-xs font-bold">
+        <button
+          type="button"
+          (click)="setViewFilter('upcoming')"
+          class="flex-1 py-2 rounded-btn transition-colors text-center cursor-pointer"
+          [ngClass]="viewFilter === 'upcoming' ? 'bg-surface text-brand-primary shadow-btn' : 'text-muted hover:text-main'">
+          Kommende
+        </button>
+        <button
+          type="button"
+          (click)="setViewFilter('month')"
+          class="flex-1 py-2 rounded-btn transition-colors text-center cursor-pointer"
+          [ngClass]="viewFilter === 'month' ? 'bg-surface text-brand-primary shadow-btn' : 'text-muted hover:text-main'">
+          Monat ({{ monthNames[viewMonth] }})
+        </button>
+        <button
+          type="button"
+          (click)="setViewFilter('all')"
+          class="flex-1 py-2 rounded-btn transition-colors text-center cursor-pointer"
+          [ngClass]="viewFilter === 'all' ? 'bg-surface text-brand-primary shadow-btn' : 'text-muted hover:text-main'">
+          Alle ({{ events.length }})
+        </button>
+      </div>
+
+      <!-- Filtered Events List Header -->
+      <div class="flex items-center justify-between">
+        <h3 class="section-title">
+          <span>📋</span>
+          <span>Gefundene Termine ({{ filteredEvents.length }})</span>
+        </h3>
+      </div>
+
+      <!-- Empty State in List -->
+      <app-card *ngIf="filteredEvents.length === 0" extraClass="text-center p-8 space-y-3">
+        <div class="text-4xl">🏖️</div>
+        <h4 class="font-display text-base font-bold text-main">Keine Termine für diesen Filter</h4>
+        <p class="text-xs text-muted max-w-xs mx-auto">
+          In diesem Zeitraum oder dieser Kategorie liegen derzeit keine Termine vor.
+        </p>
+        <app-button
+          variant="secondary"
+          size="sm"
+          (btnClick)="toggleCreatePanel()">
+          + Termin anlegen
+        </app-button>
+      </app-card>
+
+      <!-- Events Cards List -->
+      <div class="space-y-4">
+        <app-calendar-event-card
+          *ngFor="let ev of filteredEvents"
+          [event]="ev"
+          [currentUser]="currentUser"
+          [profiles]="profiles"
+          [rsvpSaving]="actionInProgress"
+          (rsvp)="onRsvp($event.eventId, $event.status)"
+          (deleteRequest)="promptDeleteEvent($event)">
+        </app-calendar-event-card>
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+<!-- Confirmation Modal for Event Deletion -->
+<app-confirm-modal
+  [open]="!!eventToDelete"
+  icon="🗑️"
+  title="Termin wirklich löschen?"
+  [message]="deleteModalMessage"
+  confirmLabel="Ja, Termin löschen"
+  cancelLabel="Abbrechen"
+  variant="danger"
+  [loading]="actionInProgress"
+  (confirm)="confirmDeleteEvent()"
+  (cancel)="cancelDeleteEvent()">
+</app-confirm-modal>

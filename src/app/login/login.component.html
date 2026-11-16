@@ -1,33 +1,187 @@
-<div class="justify-center row flex-center flex rounded-md p-4 mx-auto my-auto w-64 border-2">
-    <div class="w-full">
-      <h1 class="header text-2xl">Login</h1>
-      <form [formGroup]="signInForm" (ngSubmit)="onSubmit()" class="form-widget">
-        <div class="flex flex-col">
-          <label for="email">Email</label>
+<div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 bg-canvas text-main">
+  
+  <!-- Live Theme Switcher above Login Box -->
+  <app-theme-switcher class="mb-5"></app-theme-switcher>
+
+  <div class="max-w-md w-full">
+    <app-card extraClass="space-y-6">
+      
+      <!-- Header with Festive Logo -->
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-card bg-surface-alt border border-border p-2">
+          <img src="assets/icon.svg" alt="Familien-App Icon" class="w-12 h-12" />
+        </div>
+        <h1 class="page-title text-center text-2xl sm:text-3xl">Familien-App</h1>
+        <p class="page-subtitle text-center">Gemeinsamer Familienbereich & Wichteln</p>
+      </div>
+
+      <!-- Clean 2-Tab Pill Toggle at the top of the card -->
+      <div class="bg-surface-alt p-1 rounded-btn border border-border flex items-center gap-1 text-sm font-bold">
+        <button
+          type="button"
+          (click)="setSetupMode(false)"
+          class="flex-1 py-2 px-3 rounded-btn transition-colors text-center cursor-pointer"
+          [ngClass]="!setupMode ? 'bg-surface text-brand-primary shadow-btn' : 'text-muted hover:text-main'">
+          Anmelden
+        </button>
+        <button
+          type="button"
+          (click)="setSetupMode(true)"
+          class="flex-1 py-2 px-3 rounded-btn transition-colors text-center cursor-pointer"
+          [ngClass]="setupMode ? 'bg-surface text-brand-primary shadow-btn' : 'text-muted hover:text-main'">
+          Neu registrieren
+        </button>
+      </div>
+
+      <!-- Inline Error & Success Messages -->
+      <app-alert type="error" [message]="errorMessage"></app-alert>
+      <app-alert type="success" [message]="setupSuccess"></app-alert>
+
+      <!-- Standard Login Form -->
+      <form *ngIf="!setupMode" [formGroup]="signInForm" (ngSubmit)="onSubmit()" class="space-y-4 animate-fadeIn">
+        <div>
+          <label for="email" class="form-label">
+            E-Mail-Adresse
+          </label>
           <input
             id="email"
-            formControlName="email"
-            class="inputField"
             type="email"
-            placeholder="Your email"
+            formControlName="email"
+            placeholder="z.B. mama@familie.de"
+            autocomplete="email"
+            required
+            class="input-field"
           />
-          <label for="password">Passwort</label>
+        </div>
+
+        <div>
+          <label for="password" class="form-label">
+            Passwort
+          </label>
           <input
             id="password"
-            formControlName="password"
-            class="inputField"
             type="password"
-            placeholder="Your password"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+            class="input-field"
           />
         </div>
-        <div class="">
-          <button type="submit">
-            {{ loading ? 'Loading' : 'Login' }}
+
+        <app-button
+          type="submit"
+          variant="primary"
+          [block]="true"
+          [loading]="loading">
+          Anmelden
+        </app-button>
+      </form>
+
+      <!-- Self-Registration Form (Neu registrieren) -->
+      <form *ngIf="setupMode" [formGroup]="setupForm" (ngSubmit)="onSetupSubmit()" class="space-y-4 animate-fadeIn">
+        <div>
+          <label for="setupUsername" class="form-label">
+            Vorname / Rufname
+          </label>
+          <input
+            id="setupUsername"
+            type="text"
+            formControlName="username"
+            placeholder="z.B. Jonathan"
+            autocomplete="name"
+            required
+            class="input-field"
+          />
+        </div>
+
+        <div>
+          <label for="setupEmail" class="form-label">
+            E-Mail-Adresse
+          </label>
+          <input
+            id="setupEmail"
+            type="email"
+            formControlName="email"
+            placeholder="z.B. mama@familie.de"
+            autocomplete="email"
+            required
+            class="input-field"
+          />
+        </div>
+
+        <div>
+          <label for="setupPassword" class="form-label">
+            Passwort (mind. 6 Zeichen)
+          </label>
+          <input
+            id="setupPassword"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            required
+            class="input-field"
+          />
+        </div>
+
+        <app-button
+          type="submit"
+          variant="primary"
+          [block]="true"
+          [loading]="setupLoading">
+          Konto erstellen & mitmachen
+        </app-button>
+      </form>
+
+      <!-- Schnell-Login (Demo-Modus) Section -->
+      <div *ngIf="supabaseService.isDemoMode && demoProfiles.length > 0" 
+           class="pt-5 border-t border-border space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-main flex items-center gap-1.5">
+            <span>⚡</span> Schnell-Login (Demo-Modus)
+          </h2>
+          <app-badge variant="warning">
+            Passwort: <code class="font-mono font-bold ml-1">familie2026</code>
+          </app-badge>
+        </div>
+        <p class="text-xs text-muted">
+          Wähle ein Familienmitglied für die Demo mit 1 Klick aus:
+        </p>
+
+        <div class="grid grid-cols-1 gap-2">
+          <button
+            *ngFor="let profile of demoProfiles"
+            type="button"
+            (click)="onDemoLogin(profile)"
+            [disabled]="demoLoadingId !== null"
+            class="card-subtle flex items-center justify-between p-2.5 text-left transition-all hover:bg-surface border border-border group cursor-pointer disabled:opacity-50">
+            <div class="flex items-center gap-2.5">
+              <app-avatar [name]="profile.username" [color]="profile.avatar_color" size="sm"></app-avatar>
+              <div>
+                <div class="text-sm font-semibold text-main group-hover:text-brand-primary transition-colors">
+                  {{ profile.username }}
+                </div>
+                <div class="text-[11px] text-muted">{{ profile.email }}</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <app-badge [variant]="profile.role === 'admin' ? 'primary' : 'neutral'" extraClass="text-[10px]">
+                {{ profile.role === 'admin' ? 'Admin' : 'Mitglied' }}
+              </app-badge>
+              <svg *ngIf="demoLoadingId === profile.id" class="animate-spin h-4 w-4 text-brand-primary" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <svg *ngIf="demoLoadingId !== profile.id" class="w-4 h-4 text-muted group-hover:text-brand-primary group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </button>
         </div>
-      </form>
-      <div class="switch">
-        <p>Dont have an Account ? <a routerLink="/register">Register</a></p>
       </div>
-    </div>
+
+    </app-card>
   </div>
+</div>

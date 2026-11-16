@@ -1,0 +1,137 @@
+<app-card variant="interactive" extraClass="space-y-4">
+  <!-- Card Header: Category & Date -->
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <app-badge [variant]="categoryBadgeVariant">
+        <span>{{ categoryIcon }}</span>
+        <span>{{ categoryLabel }}</span>
+      </app-badge>
+      <h4 class="font-display text-lg font-bold text-main mt-2">
+        {{ event.title }}
+      </h4>
+    </div>
+
+    <!-- Delete Button -->
+    <app-button
+      *ngIf="canDelete"
+      variant="danger"
+      size="sm"
+      extraClass="!p-1 text-sm leading-none"
+      (btnClick)="deleteRequest.emit(event)"
+      title="Termin löschen">
+      🗑️
+    </app-button>
+  </div>
+
+  <!-- Details: Date, Time, Location -->
+  <div class="space-y-1.5 text-xs sm:text-sm text-muted">
+    <div class="flex items-center gap-2">
+      <span class="text-brand-secondary font-bold">📅</span>
+      <span class="font-semibold text-main">{{ formatDateGerman(event.event_date) }}</span>
+      <span *ngIf="event.event_time" class="text-muted">um {{ event.event_time }} Uhr</span>
+    </div>
+
+    <div *ngIf="event.location" class="flex items-center gap-2 text-muted">
+      <span class="text-brand-primary">📍</span>
+      <span>{{ event.location }}</span>
+    </div>
+
+    <div *ngIf="event.description" class="pt-2 text-main/90 leading-relaxed font-sans text-xs sm:text-sm whitespace-pre-wrap">
+      {{ event.description }}
+    </div>
+  </div>
+
+  <!-- Creator info -->
+  <div class="text-[11px] text-muted pt-2 border-t border-border flex items-center justify-between">
+    <span>Eingetragen von: <strong class="text-main">{{ creatorName }}</strong></span>
+  </div>
+
+  <!-- RSVP Section -->
+  <div class="card-subtle space-y-3">
+    <div class="form-label !mb-0">
+      Bist du dabei?
+    </div>
+
+    <!-- RSVP Toggle Buttons -->
+    <div class="flex flex-wrap gap-2">
+      <app-button
+        size="sm"
+        [variant]="userRsvpStatus === 'yes' ? 'secondary' : 'outline'"
+        [disabled]="rsvpSaving"
+        (btnClick)="onRsvpClick('yes')"
+        extraClass="flex-1 sm:flex-initial">
+        <span>✓</span>
+        <span>Bin dabei</span>
+      </app-button>
+
+      <app-button
+        size="sm"
+        [variant]="userRsvpStatus === 'maybe' ? 'accent' : 'outline'"
+        [disabled]="rsvpSaving"
+        (btnClick)="onRsvpClick('maybe')"
+        extraClass="flex-1 sm:flex-initial">
+        <span>?</span>
+        <span>Vielleicht</span>
+      </app-button>
+
+      <app-button
+        size="sm"
+        [variant]="userRsvpStatus === 'no' ? 'danger' : 'outline'"
+        [disabled]="rsvpSaving"
+        (btnClick)="onRsvpClick('no')"
+        extraClass="flex-1 sm:flex-initial">
+        <span>✕</span>
+        <span>Kann nicht</span>
+      </app-button>
+    </div>
+
+    <!-- Attendee List Grouped -->
+    <div class="space-y-2 pt-2 border-t border-border/60 text-xs">
+      <!-- Yes list -->
+      <div *ngIf="getAttendeesByStatus('yes').length > 0" class="flex flex-wrap items-center gap-1.5">
+        <span class="font-bold text-success shrink-0">Dabei ({{ getAttendeesByStatus('yes').length }}):</span>
+        <div class="flex flex-wrap gap-1">
+          <app-badge
+            *ngFor="let u of getAttendeesByStatus('yes')"
+            variant="success"
+            extraClass="!text-[11px] inline-flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full inline-block" [ngStyle]="{ 'background-color': u.avatar_color || '#15803d' }"></span>
+            <span>{{ u.username }}</span>
+          </app-badge>
+        </div>
+      </div>
+
+      <!-- Maybe list -->
+      <div *ngIf="getAttendeesByStatus('maybe').length > 0" class="flex flex-wrap items-center gap-1.5">
+        <span class="font-bold text-warning shrink-0">Vielleicht ({{ getAttendeesByStatus('maybe').length }}):</span>
+        <div class="flex flex-wrap gap-1">
+          <app-badge
+            *ngFor="let u of getAttendeesByStatus('maybe')"
+            variant="warning"
+            extraClass="!text-[11px] inline-flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full inline-block" [ngStyle]="{ 'background-color': u.avatar_color || '#ea580c' }"></span>
+            <span>{{ u.username }}</span>
+          </app-badge>
+        </div>
+      </div>
+
+      <!-- No list -->
+      <div *ngIf="getAttendeesByStatus('no').length > 0" class="flex flex-wrap items-center gap-1.5">
+        <span class="font-bold text-danger shrink-0">Kann nicht ({{ getAttendeesByStatus('no').length }}):</span>
+        <div class="flex flex-wrap gap-1">
+          <app-badge
+            *ngFor="let u of getAttendeesByStatus('no')"
+            variant="danger"
+            extraClass="!text-[11px] inline-flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full inline-block" [ngStyle]="{ 'background-color': u.avatar_color || '#dc2626' }"></span>
+            <span>{{ u.username }}</span>
+          </app-badge>
+        </div>
+      </div>
+
+      <div *ngIf="getAttendeesByStatus('yes').length === 0 && getAttendeesByStatus('maybe').length === 0 && getAttendeesByStatus('no').length === 0" class="text-muted italic text-[11px]">
+        Noch keine Rückmeldungen zu diesem Termin.
+      </div>
+    </div>
+  </div>
+</app-card>

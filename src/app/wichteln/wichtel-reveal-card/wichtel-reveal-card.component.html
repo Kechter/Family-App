@@ -1,0 +1,198 @@
+<section class="space-y-4">
+  <!-- Case 1: Round is OPEN (not drawn yet) -->
+  <div *ngIf="round.status === 'open'">
+    <app-card extraClass="p-6 sm:p-8 space-y-4">
+      <div class="space-y-1.5">
+        <app-badge variant="warning">⏳ Noch nicht ausgelost</app-badge>
+        <h2 class="font-display text-2xl sm:text-3xl font-black text-main tracking-tight">
+          {{ round.title }}
+        </h2>
+      </div>
+
+      <p class="text-muted text-sm sm:text-base leading-relaxed max-w-2xl">
+        Sobald die Auslosung gestartet wurde, siehst du hier sofort deinen Wichtelpartner und deine zugeloste Geschenkfarbe.
+      </p>
+
+      <!-- Meta pills -->
+      <div class="flex flex-wrap gap-2.5 pt-2">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-alt border border-border text-xs font-semibold text-main">
+          <span>👥</span>
+          <span>{{ participantCount }} dabei</span>
+        </div>
+        <div *ngIf="round.budget" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-alt border border-border text-xs font-semibold text-main">
+          <span>💰</span>
+          <span>Budget: {{ round.budget }}</span>
+        </div>
+        <div *ngIf="round.event_date" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-alt border border-border text-xs font-semibold text-main">
+          <span>📅</span>
+          <span>Bescherung: {{ formatDateGerman(round.event_date) }}</span>
+        </div>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Case 2: Round is DRAWN and User has an Assignment -->
+  <div *ngIf="round.status === 'drawn' && assignment">
+
+    <!-- Subcase 2A: NOT REVEALED YET (Gift Box waiting to be unwrapped) -->
+    <app-card
+      *ngIf="!assignment.revealed"
+      extraClass="text-center p-8 sm:p-12 border-2 border-dashed border-brand-primary/40 relative overflow-hidden"
+    >
+      <div class="max-w-md mx-auto space-y-6">
+        <div class="relative inline-block">
+          <div
+            [class.gift-unwrapping]="isUnwrapping"
+            (click)="unwrap.emit()"
+            class="gift-box w-28 h-28 mx-auto rounded-card bg-brand-primary text-white flex items-center justify-center text-6xl shadow-btn transform transition-transform"
+          >
+            🎁
+          </div>
+          <div
+            *ngIf="isUnwrapping"
+            class="sparkle-layer absolute inset-0 flex items-center justify-center text-3xl pointer-events-none animate-ping"
+          >
+            ✨
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-display text-2xl font-extrabold text-main">🎁 Dein Wichtel-Los ist bereit!</h3>
+          <p class="text-muted text-sm mt-1">
+            Die geheimen Partner und Farb-Codes wurden verlost. Tippe auf das Geschenk, um dein Los aufzudecken.
+          </p>
+        </div>
+
+        <app-button
+          variant="primary"
+          size="lg"
+          [loading]="isUnwrapping"
+          (btnClick)="unwrap.emit()"
+          extraClass="w-full sm:w-auto"
+        >
+          <span>🎁</span>
+          <span>{{ isUnwrapping ? 'Wird ausgepackt...' : 'Jetzt Los aufdecken' }}</span>
+        </app-button>
+      </div>
+    </app-card>
+
+    <!-- Subcase 2B: REVEALED -->
+    <div *ngIf="assignment.revealed" class="space-y-4">
+
+      <!-- When hidden for privacy -->
+      <app-card *ngIf="hiddenForPrivacy" extraClass="text-center p-8 sm:p-10 space-y-4">
+        <div class="text-4xl">🙈</div>
+        <h3 class="font-display text-xl font-bold text-main">Dein Wichtel-Los ist kurz verborgen</h3>
+        <p class="text-muted text-sm max-w-md mx-auto">
+          Niemand kann über deine Schulter spicken. Klicke auf "Los anzeigen", wenn die Luft rein ist!
+        </p>
+        <app-button variant="secondary" (btnClick)="togglePrivacy.emit()">
+          <span>👀</span>
+          <span>Los anzeigen</span>
+        </app-button>
+      </app-card>
+
+      <!-- When VISIBLE: Partner & Color details -->
+      <div *ngIf="!hiddenForPrivacy" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Card 1: Wen du beschenkst -->
+          <app-card extraClass="flex flex-col justify-between space-y-5">
+            <div>
+              <div class="flex items-center gap-2 text-xs font-semibold text-brand-primary uppercase tracking-wider mb-2">
+                <span>✨</span>
+                <span>Wen du beschenkst:</span>
+              </div>
+              <h3 class="font-display text-3xl font-black text-main tracking-tight flex items-center gap-3">
+                <span>{{ assignment.partnerName }}</span>
+                <span class="text-2xl">🎉</span>
+              </h3>
+            </div>
+
+            <!-- Partner note/wishlist: only shown if non-empty -->
+            <app-card
+              *ngIf="assignment.partnerNote?.trim() || assignment.partnerWishlist?.trim()"
+              variant="subtle"
+              extraClass="space-y-2 flex-grow"
+            >
+              <div class="flex items-center gap-1.5 text-xs font-bold text-main">
+                <span>📜</span>
+                <span>Wunschzettel & Notizen von {{ assignment.partnerName }}:</span>
+              </div>
+              <p class="text-main/90 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                {{ assignment.partnerNote || assignment.partnerWishlist }}
+              </p>
+            </app-card>
+
+            <div class="flex items-center justify-between text-xs text-muted pt-3 border-t border-border">
+              <span *ngIf="assignment.budget">💰 Budget: <strong class="text-main">{{ assignment.budget }}</strong></span>
+              <span *ngIf="assignment.eventDate">📅 Fest: <strong class="text-main">{{ formatDateGerman(assignment.eventDate) }}</strong></span>
+            </div>
+          </app-card>
+
+          <!-- Card 2: Big Visual Color Card -->
+          <div
+            class="rounded-card p-6 sm:p-7 shadow-card border border-ink-border/30 flex flex-col justify-between space-y-6 relative overflow-hidden transition-transform duration-200 hover:scale-[1.01]"
+            [ngStyle]="{ 'background-color': assignment.colorHex, 'color': getContrastColor(assignment.colorHex) }"
+          >
+            <!-- Background Decorative Swirl -->
+            <div class="absolute -right-6 -bottom-6 opacity-10 pointer-events-none text-8xl font-black">
+              🎨
+            </div>
+
+            <div class="relative z-10">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 bg-black/10 backdrop-blur-sm">
+                <span>🎨</span>
+                <span>Deine Geschenkfarbe</span>
+              </div>
+
+              <h3 class="font-display text-3xl sm:text-4xl font-black tracking-tight drop-shadow-sm">
+                {{ assignment.colorName }}
+              </h3>
+              <div class="mt-1 font-mono text-xs opacity-80 uppercase tracking-widest">
+                {{ assignment.colorHex }}
+              </div>
+            </div>
+
+            <div class="relative z-10 bg-black/15 backdrop-blur-md rounded-card p-4 border border-white/20 space-y-2">
+              <div class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>Die Wichtel-Farbregel</span>
+              </div>
+              <p class="text-sm font-medium leading-snug">
+                Alle Geschenke für <strong>{{ assignment.partnerName }}</strong> müssen in der Farbe <strong>{{ assignment.colorName }}</strong> besorgt werden!
+              </p>
+              <p class="text-xs opacity-85 leading-normal">
+                Tipp: Geschenkpapier, Bänder, Deko oder das Geschenk selbst – Hauptsache deine Farbe dominiert!
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Small subtle privacy toggle button at bottom/corner -->
+        <div class="flex justify-end pt-1">
+          <app-button
+            size="sm"
+            variant="ghost"
+            (btnClick)="togglePrivacy.emit()"
+          >
+            <span>🙈</span>
+            <span>Kurz verbergen</span>
+          </app-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Case 3: Drawn, but user is NOT in the participants list -->
+  <div *ngIf="round.status === 'drawn' && !assignment">
+    <app-card extraClass="text-center p-8 sm:p-10 space-y-3">
+      <div class="text-4xl">ℹ️</div>
+      <h3 class="font-display text-xl font-bold text-main">Nicht eingetragen</h3>
+      <p class="text-muted text-sm max-w-md mx-auto">
+        Diese Runde wurde bereits ausgelost, du bist in dieser Runde aktuell nicht als Teilnehmer eingetragen.
+      </p>
+    </app-card>
+  </div>
+</section>

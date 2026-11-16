@@ -1,0 +1,100 @@
+<app-card extraClass="space-y-5">
+  <!-- Month Navigation Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <h2 class="font-display text-xl sm:text-2xl font-black text-main tracking-tight">
+        {{ monthTitle }}
+      </h2>
+    </div>
+
+    <div class="flex items-center gap-1.5">
+      <app-button
+        variant="outline"
+        size="sm"
+        (btnClick)="goToToday.emit()">
+        Heute
+      </app-button>
+      <app-button
+        variant="outline"
+        size="sm"
+        extraClass="!px-2.5"
+        (btnClick)="prevMonth.emit()"
+        title="Vorheriger Monat">
+        ◀
+      </app-button>
+      <app-button
+        variant="outline"
+        size="sm"
+        extraClass="!px-2.5"
+        (btnClick)="nextMonth.emit()"
+        title="Nächster Monat">
+        ▶
+      </app-button>
+    </div>
+  </div>
+
+  <!-- Weekday Headers (Mo - So) -->
+  <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs uppercase tracking-wider text-muted pb-1 border-b border-border">
+    <div *ngFor="let wd of weekdays" class="py-1">
+      {{ wd }}
+    </div>
+  </div>
+
+  <!-- Calendar Day Cells Grid -->
+  <div class="grid grid-cols-7 gap-1.5">
+    <div
+      *ngFor="let cell of cells"
+      (click)="selectDate.emit(cell.date)"
+      class="calendar-day-cell select-none min-h-[58px] sm:min-h-[66px] p-1.5 rounded-input flex flex-col justify-between cursor-pointer border transition-all text-left relative"
+      [ngClass]="{
+        'bg-surface-alt/40 text-muted/50 border-transparent opacity-60': !cell.isCurrentMonth,
+        'bg-surface text-main border-border hover:bg-surface-alt': cell.isCurrentMonth && cell.date !== selectedDate && !cell.isToday,
+        'bg-brand-primary/10 border-brand-primary text-brand-primary font-bold ring-1 ring-brand-primary/30': cell.isToday && cell.date !== selectedDate,
+        'bg-brand-secondary text-on-secondary border-ink-border shadow-btn ring-2 ring-brand-secondary/40': cell.date === selectedDate
+      }">
+
+      <!-- Day Number & Today indicator -->
+      <div class="flex items-center justify-between">
+        <span
+          class="text-xs sm:text-sm font-semibold inline-block px-1 rounded-md"
+          [ngClass]="cell.date === selectedDate ? 'text-on-secondary' : (cell.isToday ? 'text-brand-primary font-black' : '')">
+          {{ cell.day }}
+        </span>
+
+        <span *ngIf="cell.isToday && cell.date !== selectedDate" class="text-[9px] uppercase font-bold text-brand-primary px-1 rounded bg-brand-primary/15">
+          Heute
+        </span>
+      </div>
+
+      <!-- Events Indicator Dots / Badges -->
+      <div *ngIf="cell.events.length > 0" class="flex flex-wrap gap-1 mt-1">
+        <div
+          *ngFor="let ev of cell.events.slice(0, 3)"
+          class="w-2 h-2 rounded-full shrink-0 shadow-xs"
+          [ngClass]="cell.date === selectedDate ? 'bg-white' : getDotClass(ev.category)"
+          [title]="ev.title">
+        </div>
+        <span
+          *ngIf="cell.events.length > 3"
+          class="text-[9px] font-bold leading-none self-center"
+          [ngClass]="cell.date === selectedDate ? 'text-on-secondary' : 'text-muted'">
+          +{{ cell.events.length - 3 }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selected Date Banner / Clear Pill -->
+  <div *ngIf="selectedDate" class="alert-info justify-between py-2.5">
+    <div class="flex items-center gap-2 font-semibold">
+      <span>🔍 Filter aktiv:</span>
+      <span>{{ formatDateGerman(selectedDate) }}</span>
+    </div>
+    <button
+      type="button"
+      (click)="clearSelectedDate.emit()"
+      class="text-xs font-bold text-brand-primary hover:underline cursor-pointer">
+      Filter aufheben
+    </button>
+  </div>
+</app-card>

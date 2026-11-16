@@ -1,0 +1,375 @@
+<div class="page-container animate-fadeIn max-w-3xl mx-auto space-y-6">
+
+  <!-- Header Section -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mein Profil & Familie</h1>
+      <p class="page-subtitle">Verwalte deine persönlichen Daten, dein Passwort und lade Familienmitglieder ein.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Mein Profil (cleanly visible upfront) -->
+  <app-card extraClass="space-y-6">
+    <div class="flex items-center gap-3 pb-3 border-b border-border">
+      <div class="w-10 h-10 rounded-card bg-surface-alt text-brand-primary flex items-center justify-center text-xl flex-shrink-0 border border-border">
+        👤
+      </div>
+      <div>
+        <h2 class="section-title text-base sm:text-lg">Mein Profil</h2>
+        <p class="text-xs text-muted">Name, Geburtstag, Profilfarbe und Standard-Wunschzettel</p>
+      </div>
+    </div>
+
+    <!-- Inline Feedback Alerts -->
+    <app-alert type="success" [message]="profileSuccess"></app-alert>
+    <app-alert type="error" [message]="profileError"></app-alert>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="space-y-4">
+      <!-- Name / Username -->
+      <div>
+        <label for="username" class="form-label">
+          Name / Spitzname
+        </label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="z.B. Mama oder Jonathan"
+          required
+          class="input-field"
+        />
+      </div>
+
+      <!-- Geburtstag -->
+      <div>
+        <label for="birthday" class="form-label">
+          Geburtstag (für den Familienkalender)
+        </label>
+        <input
+          id="birthday"
+          type="date"
+          formControlName="birthday"
+          class="input-field"
+        />
+      </div>
+
+      <!-- Avatar Color Selection -->
+      <div>
+        <label class="form-label mb-2">
+          Profilfarbe
+        </label>
+        
+        <div class="space-y-3">
+          <!-- Preset Color Circles -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button
+              *ngFor="let col of presetColors"
+              type="button"
+              (click)="selectColor(col.hex)"
+              [title]="col.name"
+              [ngStyle]="{'background-color': col.hex}"
+              class="w-7 h-7 rounded-full shadow-xs transition-transform hover:scale-110 active:scale-95 flex items-center justify-center relative focus:outline-none"
+              [ngClass]="profileForm.value.avatar_color === col.hex ? 'ring-2 ring-offset-2 ring-brand-primary scale-105' : 'border border-black/10'">
+              <span *ngIf="profileForm.value.avatar_color === col.hex" class="text-white text-xs font-black">✓</span>
+            </button>
+          </div>
+
+          <!-- Custom Color Picker Row -->
+          <div class="flex items-center gap-3 pt-1">
+            <label for="customColor" class="btn btn-outline btn-sm cursor-pointer py-1.5 px-3 min-h-0">
+              <input
+                id="customColor"
+                type="color"
+                formControlName="avatar_color"
+                class="w-5 h-5 rounded cursor-pointer border-0 p-0 bg-transparent"
+              />
+              <span>Eigene Farbe wählen</span>
+            </label>
+            <div class="text-xs text-muted font-mono">{{ profileForm.value.avatar_color }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Standard Wunschzettel -->
+      <div>
+        <label for="wishlist" class="form-label">
+          Allgemeiner Wunschzettel
+        </label>
+        <p class="text-[11px] text-muted mb-1.5 leading-normal">
+          Deine Wünsche für Geburtstage und als Vorlage für das nächste Wichteln.
+        </p>
+        <textarea
+          id="wishlist"
+          rows="4"
+          formControlName="wishlist"
+          placeholder="z.B. Gute Bücher, Wollsocken Gr. 42, Kräutertee, Kletterzubehör..."
+          class="textarea-field leading-relaxed"
+        ></textarea>
+      </div>
+
+      <!-- Save Button -->
+      <app-button
+        type="submit"
+        variant="primary"
+        [block]="true"
+        [loading]="profileLoading">
+        {{ profileLoading ? 'Wird gespeichert...' : 'Profil speichern' }}
+      </app-button>
+    </form>
+  </app-card>
+
+  <!-- SECTION 2: 🔑 Passwort ändern (Collapsible Accordion) -->
+  <app-card extraClass="transition-all">
+    <button
+      type="button"
+      (click)="togglePasswordSection()"
+      class="w-full flex items-center justify-between text-left p-1 focus:outline-none group cursor-pointer">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-card bg-surface-alt text-brand-accent flex items-center justify-center text-xl flex-shrink-0 border border-border">
+          🔑
+        </div>
+        <div>
+          <h2 class="section-title text-base sm:text-lg group-hover:text-brand-primary transition-colors">Passwort ändern</h2>
+          <p class="text-xs text-muted">Eigenes Anmeldekennwort sicher aktualisieren</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-muted group-hover:text-main">
+        <span class="text-xs font-semibold hidden sm:inline">{{ showPasswordSection ? 'Zuklappen' : 'Öffnen' }}</span>
+        <svg
+          class="w-5 h-5 transition-transform duration-200"
+          [ngClass]="{'rotate-180': showPasswordSection}"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </button>
+
+    <div *ngIf="showPasswordSection" class="pt-5 mt-4 border-t border-border space-y-4 animate-fadeIn">
+      <!-- Inline Password Feedback -->
+      <app-alert type="success" [message]="passwordSuccess"></app-alert>
+      <app-alert type="error" [message]="passwordError"></app-alert>
+
+      <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="space-y-4">
+        <div>
+          <label for="newPassword" class="form-label">
+            Neues Passwort
+          </label>
+          <input
+            id="newPassword"
+            type="password"
+            formControlName="newPassword"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            required
+            class="input-field"
+          />
+        </div>
+
+        <div>
+          <label for="confirmPassword" class="form-label">
+            Neues Passwort wiederholen
+          </label>
+          <input
+            id="confirmPassword"
+            type="password"
+            formControlName="confirmPassword"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            required
+            class="input-field"
+          />
+        </div>
+
+        <app-button
+          type="submit"
+          variant="secondary"
+          [block]="true"
+          [loading]="passwordLoading">
+          {{ passwordLoading ? 'Wird geändert...' : 'Passwort aktualisieren' }}
+        </app-button>
+      </form>
+    </div>
+  </app-card>
+
+  <!-- SECTION 3: 👨‍👩‍👧‍👦 Familienmitglieder & Einladen (Collapsible Accordion) -->
+  <app-card extraClass="transition-all">
+    <button
+      type="button"
+      (click)="toggleFamilySection()"
+      class="w-full flex items-center justify-between text-left p-1 focus:outline-none group cursor-pointer">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-card bg-surface-alt text-brand-secondary flex items-center justify-center text-xl flex-shrink-0 border border-border">
+          👨‍👩‍👧‍👦
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="section-title text-base sm:text-lg group-hover:text-brand-primary transition-colors">Familienmitglieder & Einladen</h2>
+            <app-badge variant="neutral" extraClass="text-[11px] font-bold">
+              {{ familyMembers.length }}
+            </app-badge>
+          </div>
+          <p class="text-xs text-muted">Übersicht aller Familienmitglieder & neue Zugänge einladen</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-muted group-hover:text-main">
+        <span class="text-xs font-semibold hidden sm:inline">{{ showFamilySection ? 'Zuklappen' : 'Öffnen' }}</span>
+        <svg
+          class="w-5 h-5 transition-transform duration-200"
+          [ngClass]="{'rotate-180': showFamilySection}"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </button>
+
+    <div *ngIf="showFamilySection" class="pt-5 mt-4 border-t border-border space-y-6 animate-fadeIn">
+      <!-- Family Members List -->
+      <div class="space-y-2">
+        <app-card *ngFor="let member of familyMembers" 
+                  variant="subtle"
+                  extraClass="p-3 flex items-center justify-between gap-3 transition-colors hover:bg-surface-alt">
+          <div class="flex items-center gap-3 min-w-0">
+            <app-avatar [name]="member.username" [color]="member.avatar_color" size="md"></app-avatar>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-bold text-main truncate">{{ member.username }}</span>
+                <app-badge *ngIf="member.id === currentUser?.id" variant="warning" extraClass="text-[10px] py-0.5 px-1.5">Du</app-badge>
+              </div>
+              <div class="text-[11px] text-muted truncate">{{ member.email }}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-shrink-0 text-right">
+            <div class="text-xs text-muted hidden sm:block">
+              {{ formatBirthday(member.birthday) }}
+            </div>
+            <app-badge [variant]="member.role === 'admin' ? 'primary' : 'neutral'" extraClass="text-[10px]">
+              {{ member.role === 'admin' ? 'Admin' : 'Mitglied' }}
+            </app-badge>
+          </div>
+        </app-card>
+      </div>
+
+      <!-- Admin Invite Form Area -->
+      <div *ngIf="currentUser?.role === 'admin'" class="pt-4 border-t border-border space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="section-title text-sm">
+            <span>✉️</span> Neues Familienmitglied anlegen
+          </h3>
+          <app-badge variant="primary" extraClass="text-[10px]">
+            Admin-Funktion
+          </app-badge>
+        </div>
+
+        <!-- Invite Feedback Alerts -->
+        <app-alert type="success" [message]="inviteSuccess"></app-alert>
+        <app-alert type="error" [message]="inviteError"></app-alert>
+
+        <form [formGroup]="inviteForm" (ngSubmit)="onCreateInvite()" class="space-y-3.5">
+          <div>
+            <label for="inviteName" class="form-label">
+              Name des Familienmitglieds
+            </label>
+            <input
+              id="inviteName"
+              type="text"
+              formControlName="name"
+              placeholder="z.B. Oma Ingrid oder Felix"
+              required
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <label for="inviteEmail" class="form-label">
+              E-Mail-Adresse
+            </label>
+            <input
+              id="inviteEmail"
+              type="email"
+              formControlName="email"
+              placeholder="z.B. felix@familie.de"
+              required
+              class="input-field"
+            />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="invitePassword" class="form-label mb-0">
+                Start-Passwort
+              </label>
+              <button
+                type="button"
+                (click)="generateRandomPassword()"
+                class="text-[11px] font-semibold text-brand-primary hover:underline flex items-center gap-1">
+                <span>🎲</span> Neues Zufallspasswort
+              </button>
+            </div>
+            <input
+              id="invitePassword"
+              type="text"
+              formControlName="tempPassword"
+              placeholder="Startpasswort"
+              required
+              class="input-field font-mono"
+            />
+          </div>
+
+          <div>
+            <label for="inviteRole" class="form-label">
+              Rolle
+            </label>
+            <select
+              id="inviteRole"
+              formControlName="role"
+              class="select-field">
+              <option value="member">Mitglied (Standard)</option>
+              <option value="admin">Admin (kann Runden auslosen & Mitglieder anlegen)</option>
+            </select>
+          </div>
+
+          <app-button
+            type="submit"
+            variant="secondary"
+            [block]="true"
+            [loading]="inviteLoading">
+            {{ inviteLoading ? 'Wird angelegt...' : 'Zugang anlegen & Einladung erstellen' }}
+          </app-button>
+        </form>
+
+        <!-- Generated Invite Text Display + WhatsApp Copy Button -->
+        <app-card *ngIf="lastInviteText" variant="subtle" extraClass="mt-4 border-brand-accent/40 space-y-3 animate-fadeIn">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-main flex items-center gap-1.5">
+              <span>📋</span> Einladungstext bereit
+            </span>
+            <app-button
+              type="button"
+              variant="primary"
+              size="sm"
+              (btnClick)="copyInviteText()">
+              {{ inviteCopied ? 'Kopiert! ✅' : 'Für WhatsApp kopieren 💬' }}
+            </app-button>
+          </div>
+
+          <pre class="text-xs text-main whitespace-pre-wrap font-sans bg-surface p-3 rounded-card border border-border leading-relaxed">{{ lastInviteText }}</pre>
+
+          <p class="text-[11px] text-muted">
+            💡 Tipp: Du kannst diesen Text direkt per WhatsApp oder E-Mail an das neue Familienmitglied senden.
+          </p>
+        </app-card>
+      </div>
+
+      <!-- Non-Admin Notice -->
+      <div *ngIf="currentUser?.role !== 'admin'" class="pt-4 border-t border-border">
+        <app-alert type="info" message="Neue Zugänge können von Jonathan oder anderen Administratoren angelegt werden."></app-alert>
+      </div>
+    </div>
+  </app-card>
+
+</div>

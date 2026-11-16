@@ -1,0 +1,216 @@
+<div class="page-container max-w-4xl mx-auto space-y-6">
+
+  <!-- Minimal, airy centered page header -->
+  <div class="text-center py-2 sm:py-4">
+    <h1 class="page-title text-center">
+      🎄 {{ round ? round.title : 'Wichteln' }}
+    </h1>
+  </div>
+
+  <!-- Global Alerts -->
+  <app-alert
+    *ngIf="adminError"
+    type="error"
+    [message]="adminError"
+    [dismissible]="true"
+    (dismiss)="adminError = null"
+  ></app-alert>
+
+  <app-alert
+    *ngIf="adminSuccess"
+    type="success"
+    [message]="adminSuccess"
+    [dismissible]="true"
+    (dismiss)="adminSuccess = null"
+  ></app-alert>
+
+  <!-- Global Loading State -->
+  <app-card *ngIf="loading" extraClass="text-center py-12">
+    <div class="inline-block animate-spin text-4xl mb-3">❄️</div>
+    <p class="text-muted font-medium">Wichteldaten werden geladen...</p>
+  </app-card>
+
+  <!-- Empty State: No round created yet -->
+  <app-card *ngIf="!loading && !round" extraClass="text-center p-8 sm:p-12 space-y-5">
+    <div class="w-20 h-20 mx-auto rounded-full bg-surface-alt flex items-center justify-center text-4xl shadow-inner">
+      🎅
+    </div>
+    <div class="max-w-md mx-auto">
+      <h2 class="font-display text-2xl font-bold text-main">Noch keine aktive Wichtelrunde</h2>
+      <p class="mt-2 text-muted text-sm">
+        Erstelle die erste Wichtelrunde für die Familie, um Teilnehmer einzuladen, Farben zu verteilen und die Vorfreude zu starten!
+      </p>
+    </div>
+    <app-button
+      variant="primary"
+      size="lg"
+      (btnClick)="createInitialRound()"
+    >
+      <span>✨</span>
+      <span>Erste Wichtelrunde anlegen (Weihnachten 2026)</span>
+    </app-button>
+  </app-card>
+
+  <!-- Active Round Content: Progressive Disclosure -->
+  <div *ngIf="!loading && round" class="space-y-6">
+
+    <!-- 1. The Main Reveal Card right at the top -->
+    <app-wichtel-reveal-card
+      [round]="round"
+      [assignment]="assignment"
+      [participantCount]="participants.length"
+      [isUnwrapping]="unwrapping"
+      [hiddenForPrivacy]="hiddenForPrivacy"
+      (unwrap)="unwrapGift()"
+      (togglePrivacy)="togglePrivacy()"
+    ></app-wichtel-reveal-card>
+
+    <!-- 2. On-Demand Toggle Bar -->
+    <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 pt-2">
+      <app-button
+        [variant]="activeTab === 'wishlist' ? 'primary' : 'outline'"
+        size="sm"
+        (btnClick)="toggleTab('wishlist')"
+      >
+        <span>📝</span>
+        <span>Mein Wunschzettel</span>
+      </app-button>
+
+      <app-button
+        [variant]="activeTab === 'participants' ? 'primary' : 'outline'"
+        size="sm"
+        (btnClick)="toggleTab('participants')"
+      >
+        <span>👥</span>
+        <span>Teilnehmer ({{ participants.length }})</span>
+      </app-button>
+
+      <app-button
+        *ngIf="currentUser?.role === 'admin'"
+        [variant]="activeTab === 'admin' ? 'primary' : 'outline'"
+        size="sm"
+        (btnClick)="toggleTab('admin')"
+      >
+        <span>⚙️</span>
+        <span>Auslosung & Admin</span>
+      </app-button>
+    </div>
+
+    <!-- 3. Collapsible Sections (Render ONLY active section) -->
+
+    <!-- Section A: Wishlist -->
+    <div *ngIf="activeTab === 'wishlist'" class="animate-fade-in">
+      <app-wichtel-wishlist-card
+        [isParticipant]="isCurrentUserParticipant()"
+        [wishlistNote]="myWishlistNote"
+        [isSaving]="wishlistSaving"
+        [savedSuccess]="wishlistSavedSuccess"
+        (saveWishlist)="onSaveWishlist($event)"
+      ></app-wichtel-wishlist-card>
+    </div>
+
+    <!-- Section B: Public Participants List (Strictly private: only name, avatar, wishlist status) -->
+    <div *ngIf="activeTab === 'participants'" class="animate-fade-in">
+      <app-card extraClass="space-y-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="section-title">
+              <span>👥</span>
+              <span>Teilnehmer der Wichtelrunde ({{ participants.length }})</span>
+            </h2>
+            <p class="text-muted text-xs sm:text-sm mt-0.5">
+              Wer ist dieses Jahr beim Wichteln dabei?
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+          <app-card
+            *ngFor="let p of participants"
+            variant="compact"
+            extraClass="flex items-center justify-between hover:bg-surface-alt/50 transition-colors"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <app-avatar
+                [name]="p.profile?.username || 'Familienmitglied'"
+                [color]="p.profile?.avatar_color || '#b91c1c'"
+                size="md"
+              ></app-avatar>
+              <div class="truncate">
+                <div class="font-bold text-main text-sm truncate">
+                  {{ p.profile?.username || 'Familienmitglied' }}
+                </div>
+                <div class="text-xs text-muted truncate">
+                  {{ p.profile?.email }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Badges -->
+            <div class="flex flex-col items-end gap-1 shrink-0 ml-2">
+              <app-badge [variant]="p.wishlist_note.trim() ? 'success' : 'warning'">
+                {{ p.wishlist_note.trim() ? '✓ Wünsche da' : 'Ohne Wünsche' }}
+              </app-badge>
+              <span *ngIf="round.status === 'drawn'" class="text-[10px] text-muted font-medium">
+                {{ p.revealed ? '🎁 Los aufgedeckt' : '📦 Noch versiegelt' }}
+              </span>
+            </div>
+          </app-card>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Section C: Admin Panel (Only visible to admin) -->
+    <div *ngIf="activeTab === 'admin' && currentUser?.role === 'admin'" class="animate-fade-in">
+      <app-wichtel-admin-panel
+        [round]="round"
+        [profiles]="profiles"
+        [participants]="participants"
+        [isProcessing]="isProcessingAction"
+        [adminError]="adminError"
+        [adminSuccess]="adminSuccess"
+        (saveMetadata)="onSaveMetadata($event)"
+        (saveParticipants)="onSaveParticipants($event)"
+        (toggleColor)="onToggleColor($event)"
+        (addCustomColor)="onAddCustomColor($event)"
+        (addExclusion)="onAddExclusion($event)"
+        (removeExclusion)="onRemoveExclusion($event)"
+        (requestDraw)="openDrawModal()"
+        (requestReset)="openResetModal()"
+        (dismissError)="adminError = null"
+        (dismissSuccess)="adminSuccess = null"
+      ></app-wichtel-admin-panel>
+    </div>
+
+    <!-- Confirmation Modal: Draw / Redraw -->
+    <app-confirm-modal
+      [open]="showDrawConfirm"
+      icon="🎲"
+      [title]="round.status === 'drawn' ? 'Wichtelrunde wirklich neu auslosen?' : 'Wichtelrunde jetzt auslosen?'"
+      [message]="round.status === 'drawn'
+        ? 'Achtung: Dies überschreibt alle bisherigen Zuweisungen und Farben! Alle Teilnehmer müssen ihr Los erneut auspacken.'
+        : 'Der Algorithmus weist jedem der ' + participants.length + ' Teilnehmer einen geheimen Wichtelpartner und eine Farbe aus dem Pool zu.'"
+      [confirmLabel]="isProcessingAction ? 'Wird ausgelost...' : 'Ja, jetzt auslosen!'"
+      cancelLabel="Abbrechen"
+      variant="primary"
+      [loading]="isProcessingAction"
+      (confirm)="executeDraw()"
+      (cancel)="closeDrawModal()"
+    ></app-confirm-modal>
+
+    <!-- Confirmation Modal: Reset -->
+    <app-confirm-modal
+      [open]="showResetConfirm"
+      icon="⚠️"
+      title="Runde zurücksetzen?"
+      message="Alle vergebenen Partner und Farben werden gelöscht. Der Status der Wichtelrunde wird wieder auf &quot;offen&quot; gestellt."
+      [confirmLabel]="isProcessingAction ? 'Wird zurückgesetzt...' : 'Ja, zurücksetzen'"
+      cancelLabel="Abbrechen"
+      variant="danger"
+      [loading]="isProcessingAction"
+      (confirm)="executeReset()"
+      (cancel)="closeResetModal()"
+    ></app-confirm-modal>
+
+  </div>
+</div>

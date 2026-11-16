@@ -1,1 +1,388 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   DESIGN TOKENS & THEME PERSONALITIES
+   Zero hardcoded component colors: every component consumes these variables.
+   ============================================================================ */
+
+:root,
+[data-theme="atelier"] {
+  /* Theme 1: Winter-Atelier (Nordic Cozy & Editorial Warmth) */
+  --bg-canvas: 250 246 238;          /* #FAF6EE Warm linen parchment */
+  --bg-surface: 255 255 255;         /* #FFFFFF Crisp paper */
+  --bg-surface-alt: 243 236 224;     /* #F3ECE0 Soft oatmeal */
+  --bg-header: 255 253 249;          /* #FFFDF9 */
+  --bg-admin: 27 40 36;              /* #1B2824 Deep forest charcoal */
+
+  --text-main: 35 31 32;             /* #231F20 Espresso ink */
+  --text-muted: 107 98 91;           /* #6B625B Warm stone */
+  --text-on-primary: 255 255 255;
+  --text-on-secondary: 255 255 255;
+
+  --color-primary: 158 42 43;        /* #9E2A2B Cranberry */
+  --color-primary-hover: 125 30 31;  /* #7D1E1F */
+  --color-secondary: 27 67 50;       /* #1B4332 Deep pine */
+  --color-secondary-hover: 18 46 34; /* #122E22 */
+  --color-accent: 197 143 54;        /* #C58F36 Warm brass */
+
+  --color-border: 228 218 201;       /* #E4DAC9 */
+  --color-ink-border: 125 30 31;
+
+  --color-danger: 185 28 28;
+  --color-success: 21 128 61;
+  --color-warning: 180 83 9;
+
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --radius-card: 1.5rem;
+  --radius-btn: 0.875rem;
+  --radius-input: 0.875rem;
+
+  --border-width-card: 1px;
+  --border-width-btn: 1px;
+
+  --shadow-card: 0 10px 30px -12px rgba(35, 31, 32, 0.08), 0 2px 6px -2px rgba(35, 31, 32, 0.04);
+  --shadow-btn: 0 4px 12px -2px rgba(158, 42, 43, 0.22);
+  --shadow-btn-active: 0 1px 4px -1px rgba(158, 42, 43, 0.18);
+  --btn-active-shift: translateY(1px);
+  --canvas-glow: radial-gradient(circle at 12% 8%, rgba(197, 143, 54, 0.11), transparent 36%),
+                 radial-gradient(circle at 88% 14%, rgba(27, 67, 50, 0.07), transparent 40%);
+}
+
+[data-theme="chalet"] {
+  /* Theme 2: Alpen-Chalet (Cozy Timber, Copper & Alpine Fir) */
+  --bg-canvas: 242 239 233;          /* #F2EFE9 Warm stone */
+  --bg-surface: 250 248 245;         /* #FAF8F5 Soft ivory */
+  --bg-surface-alt: 234 227 216;     /* #EAE3D8 Timber sand */
+  --bg-header: 250 248 245;
+  --bg-admin: 28 25 23;              /* #1C1917 Charcoal wood */
+
+  --text-main: 28 25 23;             /* #1C1917 */
+  --text-muted: 87 83 78;            /* #57534E */
+  --text-on-primary: 255 255 255;
+  --text-on-secondary: 255 255 255;
+
+  --color-primary: 180 83 9;         /* #B45309 Fireside copper */
+  --color-primary-hover: 146 64 14;
+  --color-secondary: 20 83 45;       /* #14532D Alpine fir */
+  --color-secondary-hover: 15 63 34;
+  --color-accent: 136 19 55;         /* #881337 Mulled wine */
+
+  --color-border: 214 206 194;       /* #D6CEC2 */
+  --color-ink-border: 146 64 14;
+
+  --color-danger: 185 28 28;
+  --color-success: 20 83 45;
+  --color-warning: 180 83 9;
+
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --radius-card: 1.75rem;
+  --radius-btn: 9999px;
+  --radius-input: 1rem;
+
+  --border-width-card: 1px;
+  --border-width-btn: 1px;
+
+  --shadow-card: 0 12px 32px -12px rgba(28, 25, 23, 0.12);
+  --shadow-btn: 0 6px 16px -4px rgba(180, 83, 9, 0.28);
+  --shadow-btn-active: 0 2px 6px -2px rgba(180, 83, 9, 0.22);
+  --btn-active-shift: translateY(1px);
+  --canvas-glow: radial-gradient(circle at 20% 10%, rgba(180, 83, 9, 0.10), transparent 38%),
+                 radial-gradient(circle at 80% 90%, rgba(20, 83, 45, 0.08), transparent 40%);
+}
+
+@layer base {
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: var(--font-body);
+  }
+  body {
+    background-color: rgb(var(--bg-canvas));
+    background-image: var(--canvas-glow);
+    background-attachment: fixed;
+    color: rgb(var(--text-main));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* ============================================================================
+   REUSABLE DESIGN SYSTEM COMPONENTS (Buttons, Cards, Inputs, Badges, Nav)
+   ============================================================================ */
+@layer components {
+  /* Layout & Typography */
+  .page-container {
+    @apply space-y-6;
+  }
+  .page-header {
+    @apply flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2;
+  }
+  .page-title {
+    @apply font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-main;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted mt-1;
+  }
+  .section-title {
+    @apply font-display text-lg sm:text-xl font-bold tracking-tight text-main flex items-center gap-2.5;
+  }
+
+  /* Cards */
+  .card {
+    background-color: rgb(var(--bg-surface));
+    border: var(--border-width-card) solid rgb(var(--color-border));
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    @apply p-5 sm:p-6 transition-all duration-200;
+  }
+  .card-compact {
+    background-color: rgb(var(--bg-surface));
+    border: var(--border-width-card) solid rgb(var(--color-border));
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    @apply p-4 transition-all duration-200;
+  }
+  .card-interactive {
+    background-color: rgb(var(--bg-surface));
+    border: var(--border-width-card) solid rgb(var(--color-border));
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    @apply p-5 transition-all duration-200 hover:-translate-y-0.5;
+  }
+  .card-subtle {
+    background-color: rgb(var(--bg-surface-alt) / 0.65);
+    border: 1px solid rgb(var(--color-border) / 0.65);
+    border-radius: var(--radius-input);
+    @apply p-4;
+  }
+  .card-hero {
+    background: linear-gradient(135deg, rgb(var(--color-primary)), rgb(var(--color-primary-hover)));
+    border: var(--border-width-card) solid rgb(var(--color-ink-border));
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    @apply p-6 sm:p-7 text-on-primary relative overflow-hidden;
+  }
+  .card-hero-secondary {
+    background: linear-gradient(135deg, rgb(var(--color-secondary)), rgb(var(--color-secondary-hover)));
+    border: var(--border-width-card) solid rgb(var(--color-ink-border));
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    @apply p-6 sm:p-7 text-on-secondary relative overflow-hidden;
+  }
+  .card-admin {
+    background-color: rgb(var(--bg-admin));
+    border: var(--border-width-card) solid rgb(var(--color-ink-border));
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    @apply p-6 sm:p-8 text-white;
+  }
+
+  /* Buttons */
+  .btn {
+    border-radius: var(--radius-btn);
+    border-width: var(--border-width-btn);
+    border-style: solid;
+    box-shadow: var(--shadow-btn);
+    @apply inline-flex items-center justify-center gap-2 font-semibold transition-all duration-150
+           cursor-pointer select-none px-5 py-2.5 text-sm min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn:not(:disabled):active {
+    transform: var(--btn-active-shift);
+    box-shadow: var(--shadow-btn-active);
+  }
+  .btn-sm {
+    @apply px-3.5 py-2 text-xs min-h-[36px];
+  }
+  .btn-lg {
+    @apply px-6 py-3.5 text-base min-h-[50px];
+  }
+  .btn-block {
+    @apply w-full;
+  }
+  .btn-primary {
+    background-color: rgb(var(--color-primary));
+    border-color: rgb(var(--color-ink-border));
+    color: rgb(var(--text-on-primary));
+  }
+  .btn-primary:not(:disabled):hover {
+    background-color: rgb(var(--color-primary-hover));
+  }
+  .btn-secondary {
+    background-color: rgb(var(--color-secondary));
+    border-color: rgb(var(--color-ink-border));
+    color: rgb(var(--text-on-secondary));
+  }
+  .btn-secondary:not(:disabled):hover {
+    background-color: rgb(var(--color-secondary-hover));
+  }
+  .btn-accent {
+    background-color: rgb(var(--color-accent));
+    border-color: rgb(var(--color-ink-border));
+    @apply text-white hover:brightness-95;
+  }
+  .btn-outline {
+    background-color: rgb(var(--bg-surface));
+    border-color: rgb(var(--color-border));
+    color: rgb(var(--text-main));
+  }
+  .btn-outline:not(:disabled):hover {
+    background-color: rgb(var(--bg-surface-alt));
+  }
+  .btn-ghost {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: rgb(var(--text-muted));
+  }
+  .btn-ghost:not(:disabled):hover {
+    background-color: rgb(var(--bg-surface-alt));
+    color: rgb(var(--text-main));
+  }
+  .btn-danger {
+    background-color: rgb(var(--color-danger) / 0.1);
+    border-color: rgb(var(--color-danger) / 0.35);
+    color: rgb(var(--color-danger));
+    box-shadow: none;
+  }
+  .btn-danger:not(:disabled):hover {
+    background-color: rgb(var(--color-danger));
+    color: #ffffff;
+  }
+  .btn-hero {
+    background-color: rgb(var(--bg-surface));
+    border-color: rgb(var(--color-ink-border));
+    color: rgb(var(--color-primary));
+  }
+  .btn-hero:not(:disabled):hover {
+    background-color: rgb(var(--bg-surface-alt));
+  }
+
+  /* Forms */
+  .form-label {
+    @apply block text-xs font-bold uppercase tracking-wider text-muted mb-1.5;
+  }
+  .input-field,
+  .select-field,
+  .textarea-field {
+    border-radius: var(--radius-input);
+    border: var(--border-width-btn) solid rgb(var(--color-border) / 0.8);
+    background-color: rgb(var(--bg-surface-alt) / 0.45);
+    color: rgb(var(--text-main));
+    @apply w-full px-4 py-2.5 text-sm transition-all placeholder:text-muted/60
+           focus:outline-none focus:bg-surface focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20;
+  }
+  .input-dark {
+    border-radius: var(--radius-input);
+    @apply w-full bg-white/10 border border-white/20 px-3.5 py-2.5 text-sm text-white
+           placeholder:text-white/50 focus:outline-none focus:border-amber-300 focus:bg-white/15;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold tracking-wide;
+  }
+  .badge-primary {
+    @apply bg-brand-primary/15 text-brand-primary;
+  }
+  .badge-secondary {
+    @apply bg-brand-secondary/15 text-brand-secondary;
+  }
+  .badge-accent {
+    @apply bg-brand-accent/20 text-brand-accent;
+  }
+  .badge-success {
+    @apply bg-success/15 text-success;
+  }
+  .badge-warning {
+    @apply bg-warning/15 text-warning;
+  }
+  .badge-danger {
+    @apply bg-danger/15 text-danger;
+  }
+  .badge-neutral {
+    @apply bg-surface-alt text-muted;
+  }
+
+  /* Alerts */
+  .alert-error {
+    border-radius: var(--radius-input);
+    @apply p-4 bg-danger/10 border border-danger/30 text-danger text-sm flex items-start gap-3;
+  }
+  .alert-success {
+    border-radius: var(--radius-input);
+    @apply p-4 bg-success/10 border border-success/30 text-success text-sm flex items-start gap-3;
+  }
+  .alert-info {
+    border-radius: var(--radius-input);
+    @apply p-4 bg-brand-accent/15 border border-brand-accent/35 text-main text-sm flex items-start gap-3;
+  }
+
+  /* Navigation & Theme Switcher */
+  .app-header {
+    background-color: rgb(var(--bg-header) / 0.92);
+    border-bottom: var(--border-width-card) solid rgb(var(--color-border));
+    @apply sticky top-0 z-30 backdrop-blur-md;
+  }
+  .nav-pill {
+    border-radius: var(--radius-btn);
+    @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-muted
+           transition-all hover:bg-surface-alt hover:text-main;
+  }
+  .nav-pill-active {
+    background-color: rgb(var(--color-primary) / 0.12);
+    color: rgb(var(--color-primary));
+    @apply font-bold;
+  }
+  .mobile-nav {
+    background-color: rgb(var(--bg-header) / 0.96);
+    border-top: var(--border-width-card) solid rgb(var(--color-border));
+    @apply fixed bottom-0 inset-x-0 z-40 backdrop-blur-md md:hidden;
+  }
+  .mobile-tab {
+    @apply flex flex-col items-center justify-center gap-0.5 py-2 px-1 text-[11px] font-semibold text-muted transition-colors;
+  }
+  .mobile-tab-active {
+    color: rgb(var(--color-primary));
+    @apply font-bold;
+  }
+  .theme-switcher {
+    border-radius: var(--radius-btn);
+    @apply inline-flex items-center p-1 bg-surface-alt border border-border/70 gap-1;
+  }
+  .theme-chip {
+    border-radius: calc(var(--radius-btn) - 4px);
+    @apply px-2.5 py-1 text-xs font-semibold text-muted transition-all cursor-pointer hover:text-main;
+  }
+  .theme-chip-active {
+    background-color: rgb(var(--bg-surface));
+    color: rgb(var(--color-primary));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    @apply font-bold;
+  }
+}
+
+/* Subtle modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--text-muted) / 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--text-muted) / 0.55);
+}

@@ -1,0 +1,122 @@
+<app-card *ngIf="open" extraClass="border-2 border-brand-accent/40 animate-fade-in space-y-6">
+  <div class="flex items-center justify-between pb-4 border-b border-border">
+    <div class="flex items-center gap-2.5">
+      <span class="text-2xl">✨</span>
+      <h2 class="section-title">Neuen Familientermin anlegen</h2>
+    </div>
+    <app-button
+      variant="ghost"
+      size="sm"
+      extraClass="!p-1 text-lg font-bold"
+      (btnClick)="close.emit()"
+      title="Schließen">
+      ✕
+    </app-button>
+  </div>
+
+  <form (ngSubmit)="onSubmit()" class="space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Title -->
+      <div class="sm:col-span-2">
+        <label class="form-label">
+          Titel des Termins *
+        </label>
+        <input
+          type="text"
+          required
+          [(ngModel)]="newEvent.title"
+          name="title"
+          placeholder="z.B. Omas Geburtstagskuchen oder Plätzchenbacken"
+          class="input-field">
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label class="form-label">
+          Kategorie
+        </label>
+        <select
+          [(ngModel)]="newEvent.category"
+          name="category"
+          class="select-field">
+          <option value="gathering">👨‍👩‍👧‍👦 Familientreffen</option>
+          <option value="christmas">🎄 Weihnachten</option>
+          <option value="birthday">🎂 Geburtstag</option>
+          <option value="vacation">🏖️ Urlaub</option>
+          <option value="other">📌 Sonstiges</option>
+        </select>
+      </div>
+
+      <!-- Date -->
+      <div>
+        <label class="form-label">
+          Datum *
+        </label>
+        <input
+          type="date"
+          required
+          [(ngModel)]="newEvent.event_date"
+          name="event_date"
+          class="input-field">
+      </div>
+
+      <!-- Time -->
+      <div>
+        <label class="form-label">
+          Uhrzeit (optional)
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="newEvent.event_time"
+          name="event_time"
+          placeholder="z.B. 15:00 oder 15:00 - 18:00"
+          class="input-field">
+      </div>
+
+      <!-- Location -->
+      <div>
+        <label class="form-label">
+          Ort / Treffpunkt (optional)
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="newEvent.location"
+          name="location"
+          placeholder="z.B. Bei Mama & Papa oder Wohnzimmer"
+          class="input-field">
+      </div>
+
+      <!-- Description -->
+      <div class="sm:col-span-2 lg:col-span-3">
+        <label class="form-label">
+          Beschreibung & Notizen (optional)
+        </label>
+        <textarea
+          [(ngModel)]="newEvent.description"
+          name="description"
+          rows="2"
+          placeholder="Was gibt es zu beachten? Wer bringt was mit?"
+          class="textarea-field resize-y">
+        </textarea>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <app-button
+        type="button"
+        variant="ghost"
+        (btnClick)="close.emit()">
+        Abbrechen
+      </app-button>
+      <app-button
+        type="submit"
+        variant="secondary"
+        [loading]="isSaving"
+        [disabled]="isSaving || !newEvent.title.trim() || !newEvent.event_date.trim()">
+        <span>💾</span>
+        <span>{{ isSaving ? 'Wird gespeichert...' : 'Termin speichern' }}</span>
+      </app-button>
+    </div>
+  </form>
+</app-card>
