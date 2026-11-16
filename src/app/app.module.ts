@@ -9,7 +9,6 @@ import { HomepageComponent } from './homepage/homepage.component';
 import { ProfileComponent } from './profile/profile.component';
 import { WichtelnComponent } from './wichteln/wichteln.component';
 import { WichtelRevealCardComponent } from './wichteln/wichtel-reveal-card/wichtel-reveal-card.component';
-import { WichtelWishlistCardComponent } from './wichteln/wichtel-wishlist-card/wichtel-wishlist-card.component';
 import { WichtelAdminPanelComponent } from './wichteln/wichtel-admin-panel/wichtel-admin-panel.component';
 import { CalendarComponent } from './calendar/calendar.component';
 import { CalendarMonthGridComponent } from './calendar/calendar-month-grid/calendar-month-grid.component';
@@ -21,8 +20,7 @@ import {
   UiBadgeComponent,
   UiButtonComponent,
   UiCardComponent,
-  UiConfirmModalComponent,
-  UiThemeSwitcherComponent
+  UiConfirmModalComponent
 } from './shared/ui';
 
 @NgModule({
@@ -34,7 +32,6 @@ import {
     ProfileComponent,
     WichtelnComponent,
     WichtelRevealCardComponent,
-    WichtelWishlistCardComponent,
     WichtelAdminPanelComponent,
     CalendarComponent,
     CalendarMonthGridComponent,
@@ -45,8 +42,7 @@ import {
     UiBadgeComponent,
     UiButtonComponent,
     UiCardComponent,
-    UiConfirmModalComponent,
-    UiThemeSwitcherComponent
+    UiConfirmModalComponent
   ],
   imports: [
     BrowserModule,

@@ -26,13 +26,8 @@ export class WichtelnComponent implements OnInit, OnDestroy {
   unwrapping = false;
   hiddenForPrivacy = false;
 
-  // Wishlist
-  myWishlistNote = '';
-  wishlistSaving = false;
-  wishlistSavedSuccess = false;
-
   // Progressive disclosure navigation
-  activeTab: 'none' | 'wishlist' | 'participants' | 'admin' = 'none';
+  activeTab: 'none' | 'participants' | 'admin' = 'none';
 
   // Modals & banners
   showDrawConfirm = false;
@@ -68,12 +63,6 @@ export class WichtelnComponent implements OnInit, OnDestroy {
       this.participants = participants;
 
       if (round) {
-        // Load wishlist note for current user
-        if (this.currentUser) {
-          const myPart = participants.find((p) => p.user_id === this.currentUser?.id);
-          this.myWishlistNote = myPart?.wishlist_note || this.currentUser.wishlist || '';
-        }
-
         // If drawn, load secret assignment
         if (round.status === 'drawn') {
           this.assignment = await this.supabase.getMyWichtelAssignment(round.id);
@@ -166,46 +155,8 @@ export class WichtelnComponent implements OnInit, OnDestroy {
     this.hiddenForPrivacy = !this.hiddenForPrivacy;
   }
 
-  toggleTab(tab: 'wishlist' | 'participants' | 'admin'): void {
+  toggleTab(tab: 'participants' | 'admin'): void {
     this.activeTab = this.activeTab === tab ? 'none' : tab;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Wishlist Actions
-  // ---------------------------------------------------------------------------
-  async onSaveWishlist(note: string): Promise<void> {
-    if (!this.round) return;
-
-    this.myWishlistNote = note;
-    this.wishlistSaving = true;
-    this.wishlistSavedSuccess = false;
-    try {
-      const { error } = await this.supabase.updateMyWishlist(
-        this.round.id,
-        this.myWishlistNote
-      );
-      if (error) throw error;
-
-      this.wishlistSavedSuccess = true;
-      // Also update local participant item
-      const myPart = this.participants.find((p) => p.user_id === this.currentUser?.id);
-      if (myPart) {
-        myPart.wishlist_note = this.myWishlistNote;
-      }
-      setTimeout(() => {
-        this.wishlistSavedSuccess = false;
-      }, 4000);
-    } catch (err: any) {
-      console.error('Error saving wishlist:', err);
-      alert('Wunschzettel konnte nicht gespeichert werden: ' + (err?.message || ''));
-    } finally {
-      this.wishlistSaving = false;
-    }
-  }
-
-  isCurrentUserParticipant(): boolean {
-    if (!this.currentUser) return false;
-    return this.participants.some((p) => p.user_id === this.currentUser?.id);
   }
 
   // ---------------------------------------------------------------------------

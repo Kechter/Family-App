@@ -34,21 +34,28 @@ export const DESIGN_THEMES: DesignThemeOption[] = [
   }
 ];
 
-const THEME_STORAGE_KEY = 'family_app_theme_v1';
+export function getSeasonalTheme(date: Date = new Date()): DesignThemeId {
+  const month = date.getMonth();
+  const day = date.getDate();
+  if (month === 10 || month === 11 || (month === 0 && day <= 10)) {
+    return 'atelier';
+  }
+  return 'chalet';
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ThemeService {
   readonly themes = DESIGN_THEMES;
-  readonly activeTheme$ = new BehaviorSubject<DesignThemeId>('atelier');
+  readonly activeTheme$ = new BehaviorSubject<DesignThemeId>(getSeasonalTheme());
 
   constructor() {
-    this.setTheme(this.loadSavedTheme());
+    this.setTheme(getSeasonalTheme());
   }
 
   setTheme(themeId: DesignThemeId): void {
-    const valid = DESIGN_THEMES.some((t) => t.id === themeId) ? themeId : this.getDefaultSeasonalTheme();
+    const valid: DesignThemeId = DESIGN_THEMES.some((t) => t.id === themeId) ? themeId : getSeasonalTheme();
     this.activeTheme$.next(valid);
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', valid);
@@ -58,31 +65,5 @@ export class ThemeService {
         themeColorMeta.setAttribute('content', option.previewPrimary);
       }
     }
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(THEME_STORAGE_KEY, valid);
-      }
-    } catch {
-      // Ignore storage errors
-    }
-  }
-
-  private getDefaultSeasonalTheme(): DesignThemeId {
-    const month = new Date().getMonth();
-    return (month === 10 || month === 11) ? 'atelier' : 'chalet';
-  }
-
-  private loadSavedTheme(): DesignThemeId {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        const stored = localStorage.getItem(THEME_STORAGE_KEY) as DesignThemeId | null;
-        if (stored && DESIGN_THEMES.some((t) => t.id === stored)) {
-          return stored;
-        }
-      }
-    } catch {
-      // Ignore storage errors
-    }
-    return this.getDefaultSeasonalTheme();
   }
 }

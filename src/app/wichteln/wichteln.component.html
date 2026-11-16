@@ -68,15 +68,6 @@
     <!-- 2. On-Demand Toggle Bar -->
     <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 pt-2">
       <app-button
-        [variant]="activeTab === 'wishlist' ? 'primary' : 'outline'"
-        size="sm"
-        (btnClick)="toggleTab('wishlist')"
-      >
-        <span>📝</span>
-        <span>Mein Wunschzettel</span>
-      </app-button>
-
-      <app-button
         [variant]="activeTab === 'participants' ? 'primary' : 'outline'"
         size="sm"
         (btnClick)="toggleTab('participants')"
@@ -98,18 +89,7 @@
 
     <!-- 3. Collapsible Sections (Render ONLY active section) -->
 
-    <!-- Section A: Wishlist -->
-    <div *ngIf="activeTab === 'wishlist'" class="animate-fade-in">
-      <app-wichtel-wishlist-card
-        [isParticipant]="isCurrentUserParticipant()"
-        [wishlistNote]="myWishlistNote"
-        [isSaving]="wishlistSaving"
-        [savedSuccess]="wishlistSavedSuccess"
-        (saveWishlist)="onSaveWishlist($event)"
-      ></app-wichtel-wishlist-card>
-    </div>
-
-    <!-- Section B: Public Participants List (Strictly private: only name, avatar, wishlist status) -->
+    <!-- Section: Public Participants List -->
     <div *ngIf="activeTab === 'participants'" class="animate-fade-in">
       <app-card extraClass="space-y-5">
         <div class="flex items-center justify-between">
@@ -136,24 +116,16 @@
                 [color]="p.profile?.avatar_color || '#b91c1c'"
                 size="md"
               ></app-avatar>
-              <div class="truncate">
-                <div class="font-bold text-main text-sm truncate">
-                  {{ p.profile?.username || 'Familienmitglied' }}
-                </div>
-                <div class="text-xs text-muted truncate">
-                  {{ p.profile?.email }}
-                </div>
+              <div class="font-bold text-main text-sm truncate">
+                {{ p.profile?.username || 'Familienmitglied' }}
               </div>
             </div>
 
-            <!-- Badges -->
-            <div class="flex flex-col items-end gap-1 shrink-0 ml-2">
-              <app-badge [variant]="p.wishlist_note.trim() ? 'success' : 'warning'">
-                {{ p.wishlist_note.trim() ? '✓ Wünsche da' : 'Ohne Wünsche' }}
+            <!-- Revealed badge when drawn -->
+            <div *ngIf="round.status === 'drawn'" class="shrink-0 ml-2">
+              <app-badge [variant]="p.revealed ? 'success' : 'neutral'">
+                {{ p.revealed ? '🎁 Los aufgedeckt' : '📦 Versiegelt' }}
               </app-badge>
-              <span *ngIf="round.status === 'drawn'" class="text-[10px] text-muted font-medium">
-                {{ p.revealed ? '🎁 Los aufgedeckt' : '📦 Noch versiegelt' }}
-              </span>
             </div>
           </app-card>
         </div>

@@ -46,8 +46,7 @@ export class ProfileComponent implements OnInit {
   profileForm: FormGroup = this.fb.group({
     username: ['', [Validators.required]],
     birthday: [''],
-    avatar_color: ['#dc2626'],
-    wishlist: ['']
+    avatar_color: ['#dc2626']
   });
 
   passwordForm: FormGroup = this.fb.group({
@@ -78,8 +77,7 @@ export class ProfileComponent implements OnInit {
       this.profileForm.patchValue({
         username: this.currentUser.username || '',
         birthday: this.currentUser.birthday || '',
-        avatar_color: this.currentUser.avatar_color || '#dc2626',
-        wishlist: this.currentUser.wishlist || ''
+        avatar_color: this.currentUser.avatar_color || '#dc2626'
       });
     }
 
@@ -106,8 +104,7 @@ export class ProfileComponent implements OnInit {
         id: this.currentUser.id,
         username: this.profileForm.value.username?.trim(),
         birthday: this.profileForm.value.birthday || null,
-        avatar_color: this.profileForm.value.avatar_color || '#dc2626',
-        wishlist: this.profileForm.value.wishlist || ''
+        avatar_color: this.profileForm.value.avatar_color || '#dc2626'
       };
 
       const { error } = await this.supabaseService.updateProfile(payload);
