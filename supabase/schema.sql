@@ -264,20 +264,22 @@ insert into public.wichtel_rounds (title, year, budget, event_date, status, colo
 select
   'Weihnachten 2026',
   2026,
-  '25 €',
+  '',
   '2026-12-24',
   'open',
   '[
-    {"name":"Rubinrot","hex":"#dc2626"},
-    {"name":"Tannengrün","hex":"#15803d"},
-    {"name":"Sonnengelb","hex":"#eab308"},
-    {"name":"Ozeanblau","hex":"#2563eb"},
-    {"name":"Königslila","hex":"#7c3aed"},
-    {"name":"Kupfer-Orange","hex":"#ea580c"},
+    {"name":"Rot","hex":"#dc2626"},
+    {"name":"Blau","hex":"#2563eb"},
+    {"name":"Grün","hex":"#16a34a"},
+    {"name":"Gelb","hex":"#eab308"},
+    {"name":"Orange","hex":"#ea580c"},
+    {"name":"Lila","hex":"#9333ea"},
+    {"name":"Rosa","hex":"#ec4899"},
     {"name":"Türkis","hex":"#0d9488"},
-    {"name":"Altrosa","hex":"#db2777"},
-    {"name":"Waldgold","hex":"#ca8a04"},
-    {"name":"Polarweiß","hex":"#f8fafc"}
+    {"name":"Braun","hex":"#92400e"},
+    {"name":"Schwarz","hex":"#18181b"},
+    {"name":"Weiß","hex":"#f8fafc"},
+    {"name":"Grau","hex":"#64748b"}
   ]'::jsonb,
   '[]'::jsonb
 where not exists (select 1 from public.wichtel_rounds);

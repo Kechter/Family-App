@@ -91,16 +91,18 @@ export interface FamilyEvent {
 }
 
 export const WICHTEL_COLORS: WichtelColor[] = [
-  { name: 'Rubinrot', hex: '#dc2626' },
-  { name: 'Tannengrün', hex: '#15803d' },
-  { name: 'Sonnengelb', hex: '#eab308' },
-  { name: 'Ozeanblau', hex: '#2563eb' },
-  { name: 'Königslila', hex: '#7c3aed' },
-  { name: 'Kupfer-Orange', hex: '#ea580c' },
+  { name: 'Rot', hex: '#dc2626' },
+  { name: 'Blau', hex: '#2563eb' },
+  { name: 'Grün', hex: '#16a34a' },
+  { name: 'Gelb', hex: '#eab308' },
+  { name: 'Orange', hex: '#ea580c' },
+  { name: 'Lila', hex: '#9333ea' },
+  { name: 'Rosa', hex: '#ec4899' },
   { name: 'Türkis', hex: '#0d9488' },
-  { name: 'Altrosa', hex: '#db2777' },
-  { name: 'Waldgold', hex: '#ca8a04' },
-  { name: 'Polarweiß', hex: '#f8fafc' }
+  { name: 'Braun', hex: '#92400e' },
+  { name: 'Schwarz', hex: '#18181b' },
+  { name: 'Weiß', hex: '#f8fafc' },
+  { name: 'Grau', hex: '#64748b' }
 ];
 
 const DEMO_STORAGE_KEY = 'family_app_demo_v1';
@@ -251,7 +253,7 @@ export class SupabaseService {
       id: 'demo-round-2026',
       title: 'Weihnachten 2026',
       year: 2026,
-      budget: '25 €',
+      budget: '',
       event_date: '2026-12-24',
       status: 'open',
       colors: [...WICHTEL_COLORS],
@@ -779,6 +781,121 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
     }
   }
 
+  async adminResetUserPassword(
+    targetUserId: string,
+    newPassword: string,
+    memberName: string,
+    memberEmail: string
+  ): Promise<{ error: any; messageText: string }> {
+    const appUrl =
+      typeof window !== 'undefined' && window.location
+        ? `${window.location.origin}${window.location.pathname}`
+        : 'https://deine-familien-app.de';
+
+    const cleanName = memberName.trim();
+    const cleanEmail = memberEmail.trim();
+
+    const messageText =
+`Hallo ${cleanName}! 🔑
+Dein Passwort für die Familien-App wurde zurückgesetzt.
+
+Hier kannst du dich einloggen:
+🔗 ${appUrl}
+
+Deine Zugangsdaten:
+✉️ E-Mail: ${cleanEmail}
+🔑 Neues Passwort: ${newPassword}
+
+Du kannst dein Passwort danach jederzeit unter "Profil & Familie" wieder ändern.`;
+
+    if (this.isDemoMode) {
+      const state = this.getDemoState();
+      state.passwords[targetUserId] = newPassword;
+      this.saveDemoState(state);
+      return { error: null, messageText };
+    }
+
+    try {
+      await this.supabase!.auth.getSession();
+      const { data, error } = await this.supabase!.functions.invoke('admin-user-actions', {
+        body: { action: 'reset-password', targetUserId, newPassword }
+      });
+      if (error || data?.error) {
+        return {
+          error: new Error(data?.error || error?.message || 'Fehler beim Zurücksetzen.'),
+          messageText: ''
+        };
+      }
+      return { error: null, messageText };
+    } catch (err: any) {
+      return {
+        error: new Error(err?.message || 'Fehler beim Zurücksetzen.'),
+        messageText: ''
+      };
+    }
+  }
+
+  async adminSetUserRole(
+    targetUserId: string,
+    role: 'admin' | 'member'
+  ): Promise<{ error: any }> {
+    if (this.isDemoMode) {
+      const state = this.getDemoState();
+      const profile = state.profiles.find((p) => p.id === targetUserId);
+      if (!profile) {
+        return { error: new Error('Benutzer nicht gefunden.') };
+      }
+      profile.role = role;
+      profile.updated_at = new Date().toISOString();
+      this.saveDemoState(state);
+      if (state.currentUserId === profile.id) {
+        this.currentUser$.next({ ...profile });
+      }
+      return { error: null };
+    }
+
+    try {
+      await this.supabase!.auth.getSession();
+      const { data, error } = await this.supabase!.functions.invoke('admin-user-actions', {
+        body: { action: 'toggle-role', targetUserId, role }
+      });
+      if (error || data?.error) {
+        return {
+          error: new Error(data?.error || error?.message || 'Fehler beim Ändern der Rolle.')
+        };
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: new Error(err?.message || 'Fehler beim Ändern der Rolle.') };
+    }
+  }
+
+  async adminDeleteUser(targetUserId: string): Promise<{ error: any }> {
+    if (this.isDemoMode) {
+      const state = this.getDemoState();
+      state.profiles = state.profiles.filter((p) => p.id !== targetUserId);
+      state.participants = state.participants.filter((p) => p.user_id !== targetUserId);
+      delete state.passwords[targetUserId];
+      this.saveDemoState(state);
+      return { error: null };
+    }
+
+    try {
+      await this.supabase!.auth.getSession();
+      const { data, error } = await this.supabase!.functions.invoke('admin-user-actions', {
+        body: { action: 'delete-user', targetUserId }
+      });
+      if (error || data?.error) {
+        return {
+          error: new Error(data?.error || error?.message || 'Fehler beim Löschen des Benutzers.')
+        };
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: new Error(err?.message || 'Fehler beim Löschen des Benutzers.') };
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Wichtel-Randomizer Methods
   // ---------------------------------------------------------------------------
@@ -862,7 +979,7 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
         id: payload.id || 'demo-round-' + Date.now(),
         title: payload.title || 'Wichtelrunde ' + (payload.year || new Date().getFullYear()),
         year: payload.year || new Date().getFullYear(),
-        budget: payload.budget || '25 €',
+        budget: payload.budget || '',
         event_date: payload.event_date || `${payload.year || new Date().getFullYear()}-12-24`,
         status: payload.status || 'open',
         colors: payload.colors || [...WICHTEL_COLORS],
@@ -886,7 +1003,7 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
       const toInsert = {
         title: payload.title || 'Wichtelrunde',
         year: payload.year || new Date().getFullYear(),
-        budget: payload.budget || '25 €',
+        budget: payload.budget || '',
         event_date: payload.event_date || `${payload.year || new Date().getFullYear()}-12-24`,
         status: payload.status || 'open',
         colors: payload.colors || WICHTEL_COLORS,

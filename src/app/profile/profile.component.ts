@@ -30,17 +30,33 @@ export class ProfileComponent implements OnInit {
   lastInviteText = '';
   inviteCopied = false;
 
+  // Admin: Password reset state
+  resetTargetMember: Profile | null = null;
+  resetNewPassword = '';
+  resetLoading = false;
+  resetSuccess = '';
+  resetError = '';
+  resetMessageText = '';
+  resetCopied = false;
+
+  // Admin: Role toggle & user deletion state
+  roleToggleLoadingId: string | null = null;
+  deleteTargetMember: Profile | null = null;
+  deleteLoading = false;
+  adminActionSuccess = '';
+  adminActionError = '';
+
   readonly presetColors: { name: string; hex: string }[] = [
-    { name: 'Rubinrot', hex: '#dc2626' },
-    { name: 'Tannengrün', hex: '#15803d' },
-    { name: 'Ozeanblau', hex: '#2563eb' },
-    { name: 'Königslila', hex: '#7c3aed' },
-    { name: 'Altrosa', hex: '#db2777' },
-    { name: 'Sonnengelb', hex: '#eab308' },
-    { name: 'Kupfer-Orange', hex: '#ea580c' },
+    { name: 'Rot', hex: '#dc2626' },
+    { name: 'Blau', hex: '#2563eb' },
+    { name: 'Grün', hex: '#15803d' },
+    { name: 'Gelb', hex: '#eab308' },
+    { name: 'Orange', hex: '#ea580c' },
+    { name: 'Lila', hex: '#7c3aed' },
+    { name: 'Rosa', hex: '#db2777' },
     { name: 'Türkis', hex: '#0d9488' },
-    { name: 'Schiefer', hex: '#475569' },
-    { name: 'Dunkelrot', hex: '#991b1b' }
+    { name: 'Braun', hex: '#78350f' },
+    { name: 'Grau', hex: '#64748b' }
   ];
 
   profileForm: FormGroup = this.fb.group({
@@ -158,16 +174,24 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  generateRandomPassword(): void {
+  private createReadablePassword(): string {
     const words = [
       'stern', 'tannen', 'kerze', 'schnee', 'engel',
       'winter', 'glanz', 'wunder', 'komet', 'punsch'
     ];
     const word = words[Math.floor(Math.random() * words.length)];
     const num = Math.floor(100 + Math.random() * 900);
+    return `${word}-${num}!`;
+  }
+
+  generateRandomPassword(): void {
     this.inviteForm.patchValue({
-      tempPassword: `${word}-${num}!`
+      tempPassword: this.createReadablePassword()
     });
+  }
+
+  generateResetPassword(): void {
+    this.resetNewPassword = this.createReadablePassword();
   }
 
   async onCreateInvite(): Promise<void> {
@@ -207,23 +231,150 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  async copyInviteText(): Promise<void> {
-    if (!this.lastInviteText) return;
+  private async copyTextToClipboard(text: string): Promise<boolean> {
+    if (!text) return false;
     try {
       if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(this.lastInviteText);
+        await navigator.clipboard.writeText(text);
       } else {
         const ta = document.createElement('textarea');
-        ta.value = this.lastInviteText;
+        ta.value = text;
         document.body.appendChild(ta);
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
       }
-      this.inviteCopied = true;
-      setTimeout(() => (this.inviteCopied = false), 3500);
+      return true;
     } catch (err) {
       console.error('Kopieren fehlgeschlagen:', err);
+      return false;
+    }
+  }
+
+  async copyInviteText(): Promise<void> {
+    if (await this.copyTextToClipboard(this.lastInviteText)) {
+      this.inviteCopied = true;
+      setTimeout(() => (this.inviteCopied = false), 3500);
+    }
+  }
+
+  openPasswordReset(member: Profile): void {
+    if (this.currentUser?.role !== 'admin') return;
+    this.resetTargetMember = member;
+    this.resetNewPassword = this.createReadablePassword();
+    this.resetError = '';
+    this.resetSuccess = '';
+    this.resetMessageText = '';
+    this.resetCopied = false;
+  }
+
+  closePasswordReset(): void {
+    this.resetTargetMember = null;
+    this.resetNewPassword = '';
+    this.resetError = '';
+    this.resetSuccess = '';
+    this.resetMessageText = '';
+    this.resetCopied = false;
+  }
+
+  async onResetMemberPassword(): Promise<void> {
+    if (this.currentUser?.role !== 'admin' || !this.resetTargetMember) return;
+
+    const trimmedPassword = this.resetNewPassword.trim();
+    if (trimmedPassword.length < 6) {
+      this.resetError = 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+      return;
+    }
+
+    this.resetLoading = true;
+    this.resetError = '';
+    this.resetSuccess = '';
+    this.resetMessageText = '';
+    this.resetCopied = false;
+
+    try {
+      const { error, messageText } = await this.supabaseService.adminResetUserPassword(
+        this.resetTargetMember.id,
+        trimmedPassword,
+        this.resetTargetMember.username,
+        this.resetTargetMember.email
+      );
+
+      if (error) throw error;
+
+      this.resetSuccess = `Neues Passwort für "${this.resetTargetMember.username}" wurde gesetzt!`;
+      this.resetMessageText = messageText;
+    } catch (err: any) {
+      this.resetError = err?.message || 'Fehler beim Zurücksetzen des Passworts.';
+    } finally {
+      this.resetLoading = false;
+    }
+  }
+
+  async copyResetText(): Promise<void> {
+    if (await this.copyTextToClipboard(this.resetMessageText)) {
+      this.resetCopied = true;
+      setTimeout(() => (this.resetCopied = false), 3500);
+    }
+  }
+
+  async onToggleMemberRole(member: Profile): Promise<void> {
+    if (this.currentUser?.role !== 'admin' || member.id === this.currentUser.id) return;
+
+    const nextRole: 'admin' | 'member' = member.role === 'admin' ? 'member' : 'admin';
+    this.roleToggleLoadingId = member.id;
+    this.adminActionError = '';
+    this.adminActionSuccess = '';
+
+    try {
+      const { error } = await this.supabaseService.adminSetUserRole(member.id, nextRole);
+      if (error) throw error;
+
+      this.familyMembers = await this.supabaseService.getAllProfiles();
+      this.adminActionSuccess = `${member.username} ist jetzt ${nextRole === 'admin' ? 'Admin' : 'Mitglied'}.`;
+      setTimeout(() => (this.adminActionSuccess = ''), 4000);
+    } catch (err: any) {
+      this.adminActionError = err?.message || 'Fehler beim Ändern der Rolle.';
+    } finally {
+      this.roleToggleLoadingId = null;
+    }
+  }
+
+  openDeleteModal(member: Profile): void {
+    if (this.currentUser?.role !== 'admin' || member.id === this.currentUser.id) return;
+    this.adminActionError = '';
+    this.deleteTargetMember = member;
+  }
+
+  closeDeleteModal(): void {
+    if (this.deleteLoading) return;
+    this.deleteTargetMember = null;
+  }
+
+  async onConfirmDeleteMember(): Promise<void> {
+    if (this.currentUser?.role !== 'admin' || !this.deleteTargetMember) return;
+
+    const target = this.deleteTargetMember;
+    this.deleteLoading = true;
+    this.adminActionError = '';
+    this.adminActionSuccess = '';
+
+    try {
+      const { error } = await this.supabaseService.adminDeleteUser(target.id);
+      if (error) throw error;
+
+      if (this.resetTargetMember?.id === target.id) {
+        this.closePasswordReset();
+      }
+      this.deleteTargetMember = null;
+      this.familyMembers = await this.supabaseService.getAllProfiles();
+      this.adminActionSuccess = `Familienmitglied "${target.username}" wurde entfernt.`;
+      setTimeout(() => (this.adminActionSuccess = ''), 4000);
+    } catch (err: any) {
+      this.adminActionError = err?.message || 'Fehler beim Löschen des Familienmitglieds.';
+      this.deleteTargetMember = null;
+    } finally {
+      this.deleteLoading = false;
     }
   }
 

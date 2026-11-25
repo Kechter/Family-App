@@ -90,7 +90,7 @@ export class WichtelnComponent implements OnInit, OnDestroy {
       const { round, error } = await this.supabase.createOrUpdateWichtelRound({
         title: `Weihnachten ${year}`,
         year: year,
-        budget: '25 €',
+        budget: '',
         event_date: `${year}-12-24`,
         status: 'open',
         colors: [...WICHTEL_COLORS],
@@ -162,7 +162,7 @@ export class WichtelnComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------------
   // Admin: Round Metadata
   // ---------------------------------------------------------------------------
-  async onSaveMetadata(data: { title: string; year: number; budget: string; event_date: string }): Promise<void> {
+  async onSaveMetadata(data: { title: string; year: number; event_date: string }): Promise<void> {
     if (!this.round) return;
     this.isProcessingAction = true;
     this.adminError = null;
@@ -173,7 +173,6 @@ export class WichtelnComponent implements OnInit, OnDestroy {
         id: this.round.id,
         title: data.title,
         year: data.year,
-        budget: data.budget,
         event_date: data.event_date
       });
 
@@ -251,6 +250,10 @@ export class WichtelnComponent implements OnInit, OnDestroy {
 
     const next = [...current, { name, hex }];
     await this.updateColors(next);
+  }
+
+  async onResetDefaultColors(): Promise<void> {
+    await this.updateColors([...WICHTEL_COLORS]);
   }
 
   private async updateColors(colors: WichtelColor[]): Promise<void> {

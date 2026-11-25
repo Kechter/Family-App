@@ -177,7 +177,7 @@
     </div>
   </app-card>
 
-  <!-- SECTION 3: 👨‍👩‍👧‍👦 Familienmitglieder & Einladen (Collapsible Accordion) -->
+  <!-- SECTION 3: 👨‍👩‍👧‍👦 Familienmitglieder & Admin-Tools (Collapsible Accordion) -->
   <app-card extraClass="transition-all">
     <button
       type="button"
@@ -189,12 +189,18 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="section-title text-base sm:text-lg group-hover:text-brand-primary transition-colors">Familienmitglieder & Einladen</h2>
+            <h2 class="section-title text-base sm:text-lg group-hover:text-brand-primary transition-colors">
+              {{ currentUser?.role === 'admin' ? 'Familienmitglieder & Admin-Tools' : 'Familienmitglieder' }}
+            </h2>
             <app-badge variant="neutral" extraClass="text-[11px] font-bold">
               {{ familyMembers.length }}
             </app-badge>
           </div>
-          <p class="text-xs text-muted">Übersicht aller Familienmitglieder & neue Zugänge einladen</p>
+          <p class="text-xs text-muted">
+            {{ currentUser?.role === 'admin'
+              ? 'Mitglieder verwalten, Passwörter zurücksetzen & neue Zugänge anlegen'
+              : 'Übersicht aller Familienmitglieder' }}
+          </p>
         </div>
       </div>
       <div class="flex items-center gap-2 text-muted group-hover:text-main">
@@ -211,29 +217,134 @@
     </button>
 
     <div *ngIf="showFamilySection" class="pt-5 mt-4 border-t border-border space-y-6 animate-fadeIn">
+      <!-- Admin Action Feedback -->
+      <div *ngIf="currentUser?.role === 'admin' && (adminActionSuccess || adminActionError)" class="space-y-2">
+        <app-alert type="success" [message]="adminActionSuccess"></app-alert>
+        <app-alert type="error" [message]="adminActionError"></app-alert>
+      </div>
+
       <!-- Family Members List -->
       <div class="space-y-2">
-        <app-card *ngFor="let member of familyMembers" 
+        <app-card *ngFor="let member of familyMembers"
                   variant="subtle"
-                  extraClass="p-3 flex items-center justify-between gap-3 transition-colors hover:bg-surface-alt">
-          <div class="flex items-center gap-3 min-w-0">
-            <app-avatar [name]="member.username" [color]="member.avatar_color" size="md"></app-avatar>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5">
-                <span class="text-sm font-bold text-main truncate">{{ member.username }}</span>
-                <app-badge *ngIf="member.id === currentUser?.id" variant="warning" extraClass="text-[10px] py-0.5 px-1.5">Du</app-badge>
+                  extraClass="p-3 space-y-3 transition-colors hover:bg-surface-alt/70">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <app-avatar [name]="member.username" [color]="member.avatar_color" size="md"></app-avatar>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-sm font-bold text-main truncate">{{ member.username }}</span>
+                  <app-badge *ngIf="member.id === currentUser?.id" variant="warning" extraClass="text-[10px] py-0.5 px-1.5">Du</app-badge>
+                </div>
+                <div class="text-[11px] text-muted truncate">{{ member.email }}</div>
               </div>
-              <div class="text-[11px] text-muted truncate">{{ member.email }}</div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 flex-shrink-0">
+              <div class="flex items-center gap-2">
+                <div class="text-xs text-muted hidden sm:block">
+                  {{ formatBirthday(member.birthday) }}
+                </div>
+                <app-badge [variant]="member.role === 'admin' ? 'primary' : 'neutral'" extraClass="text-[10px]">
+                  {{ member.role === 'admin' ? 'Admin' : 'Mitglied' }}
+                </app-badge>
+              </div>
+
+              <!-- Per-Member Admin Actions -->
+              <div *ngIf="currentUser?.role === 'admin'" class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  (click)="openPasswordReset(member)"
+                  title="Passwort zurücksetzen"
+                  class="btn btn-outline btn-sm py-1 px-2 text-xs min-h-0">
+                  🔑 Passwort
+                </button>
+
+                <button
+                  *ngIf="member.id !== currentUser?.id"
+                  type="button"
+                  (click)="onToggleMemberRole(member)"
+                  [disabled]="roleToggleLoadingId === member.id"
+                  [title]="member.role === 'admin' ? 'Zum Mitglied herabstufen' : 'Zum Admin ernennen'"
+                  class="btn btn-outline btn-sm py-1 px-2 text-xs min-h-0">
+                  {{ roleToggleLoadingId === member.id
+                    ? '...'
+                    : (member.role === 'admin' ? 'Mitglied' : '🛡️ Admin') }}
+                </button>
+
+                <button
+                  *ngIf="member.id !== currentUser?.id"
+                  type="button"
+                  (click)="openDeleteModal(member)"
+                  title="Mitglied löschen"
+                  aria-label="Mitglied löschen"
+                  class="btn btn-outline btn-sm py-1 px-2 text-xs min-h-0 text-red-600 hover:bg-red-50 hover:border-red-300">
+                  🗑️
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 flex-shrink-0 text-right">
-            <div class="text-xs text-muted hidden sm:block">
-              {{ formatBirthday(member.birthday) }}
+          <!-- Inline Password Reset Panel -->
+          <div *ngIf="currentUser?.role === 'admin' && resetTargetMember?.id === member.id"
+               class="pt-3 border-t border-border space-y-3 animate-fadeIn">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold text-main">
+                🔑 Neues Passwort für {{ resetTargetMember?.username }} setzen
+              </span>
+              <button
+                type="button"
+                (click)="generateResetPassword()"
+                class="text-[11px] font-semibold text-brand-primary hover:underline flex items-center gap-1 cursor-pointer">
+                <span>🎲</span> Zufallspasswort
+              </button>
             </div>
-            <app-badge [variant]="member.role === 'admin' ? 'primary' : 'neutral'" extraClass="text-[10px]">
-              {{ member.role === 'admin' ? 'Admin' : 'Mitglied' }}
-            </app-badge>
+
+            <app-alert type="success" [message]="resetSuccess"></app-alert>
+            <app-alert type="error" [message]="resetError"></app-alert>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <input
+                type="text"
+                [(ngModel)]="resetNewPassword"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Neues Passwort (mind. 6 Zeichen)"
+                class="input-field font-mono text-sm flex-1"
+              />
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <app-button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  [loading]="resetLoading"
+                  (btnClick)="onResetMemberPassword()">
+                  Passwort setzen
+                </app-button>
+                <button
+                  type="button"
+                  (click)="closePasswordReset()"
+                  class="btn btn-outline btn-sm">
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+
+            <!-- Generated Reset Text Display + WhatsApp Copy Button -->
+            <div *ngIf="resetMessageText" class="bg-surface p-3 rounded-card border border-brand-accent/40 space-y-2.5 animate-fadeIn">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold text-main flex items-center gap-1.5">
+                  <span>📋</span> Nachricht für {{ resetTargetMember?.username }}
+                </span>
+                <app-button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  (btnClick)="copyResetText()">
+                  {{ resetCopied ? 'Kopiert! ✅' : 'Für WhatsApp kopieren 💬' }}
+                </app-button>
+              </div>
+              <pre class="text-xs text-main whitespace-pre-wrap font-sans bg-surface-alt p-2.5 rounded-card border border-border leading-relaxed">{{ resetMessageText }}</pre>
+            </div>
           </div>
         </app-card>
       </div>
@@ -355,5 +466,19 @@
       </div>
     </div>
   </app-card>
+
+  <!-- Delete Member Confirmation Modal -->
+  <app-confirm-modal
+    [open]="!!deleteTargetMember"
+    icon="🗑️"
+    title="Familienmitglied löschen?"
+    message="Möchtest du {{ deleteTargetMember?.username }} wirklich dauerhaft löschen? Das Konto und der Zugang werden unwiderruflich entfernt."
+    confirmLabel="Dauerhaft löschen"
+    cancelLabel="Abbrechen"
+    variant="danger"
+    [loading]="deleteLoading"
+    (confirm)="onConfirmDeleteMember()"
+    (cancel)="closeDeleteModal()">
+  </app-confirm-modal>
 
 </div>

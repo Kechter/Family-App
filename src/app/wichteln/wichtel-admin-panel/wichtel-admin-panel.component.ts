@@ -20,10 +20,11 @@ export class WichtelAdminPanelComponent implements OnChanges {
   @Input() adminError: string | null = null;
   @Input() adminSuccess: string | null = null;
 
-  @Output() saveMetadata = new EventEmitter<{ title: string; year: number; budget: string; event_date: string }>();
+  @Output() saveMetadata = new EventEmitter<{ title: string; year: number; event_date: string }>();
   @Output() saveParticipants = new EventEmitter<string[]>();
   @Output() toggleColor = new EventEmitter<WichtelColor>();
   @Output() addCustomColor = new EventEmitter<WichtelColor>();
+  @Output() resetColors = new EventEmitter<void>();
   @Output() addExclusion = new EventEmitter<{ userAId: string; userBId: string }>();
   @Output() removeExclusion = new EventEmitter<number>();
   @Output() requestDraw = new EventEmitter<void>();
@@ -33,7 +34,6 @@ export class WichtelAdminPanelComponent implements OnChanges {
 
   metaTitle = '';
   metaYear = 2026;
-  metaBudget = '25 €';
   metaEventDate = '2026-12-24';
   selectedUserIds: Set<string> = new Set<string>();
 
@@ -49,7 +49,6 @@ export class WichtelAdminPanelComponent implements OnChanges {
     if (changes['round'] && this.round) {
       this.metaTitle = this.round.title || '';
       this.metaYear = this.round.year || 2026;
-      this.metaBudget = this.round.budget || '25 €';
       this.metaEventDate = this.round.event_date || '2026-12-24';
     }
 
@@ -62,7 +61,6 @@ export class WichtelAdminPanelComponent implements OnChanges {
     this.saveMetadata.emit({
       title: this.metaTitle.trim() || 'Wichtelrunde',
       year: Number(this.metaYear) || 2026,
-      budget: this.metaBudget.trim() || '25 €',
       event_date: this.metaEventDate
     });
   }

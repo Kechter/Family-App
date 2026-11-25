@@ -9,7 +9,7 @@
       </div>
       <h3 class="font-display text-2xl font-black tracking-tight text-white">Runden-Verwaltung & Auslosung</h3>
       <p class="text-white/70 text-xs sm:text-sm mt-1">
-        Starte die Auslosung oder passe Details wie Budget, Teilnehmer, Farben und Ausschlüsse an.
+        Starte die Auslosung oder passe Details wie Rundendaten, Teilnehmer, Farben und Ausschlüsse an.
       </p>
     </div>
 
@@ -105,7 +105,7 @@
         <span>1. Rundendaten bearbeiten</span>
       </h4>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label class="block text-xs text-white/70 mb-1 font-semibold">Titel der Runde</label>
           <input
@@ -122,16 +122,6 @@
             type="number"
             [value]="metaYear"
             (input)="metaYear = $any($event.target).value"
-            class="input-dark">
-        </div>
-
-        <div>
-          <label class="block text-xs text-white/70 mb-1 font-semibold">Richt-Budget</label>
-          <input
-            type="text"
-            [value]="metaBudget"
-            (input)="metaBudget = $any($event.target).value"
-            placeholder="z.B. 25 €"
             class="input-dark">
         </div>
 
@@ -200,10 +190,20 @@
 
     <!-- Sub-Section 3: Farb-Pool verwalten -->
     <div class="space-y-4 pt-4 border-t border-white/10">
-      <h4 class="font-display text-base font-bold text-amber-300 flex items-center gap-2">
-        <span>🎨</span>
-        <span>3. Farb-Pool verwalten ({{ round.colors.length || 0 }} Farben aktiv)</span>
-      </h4>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h4 class="font-display text-base font-bold text-amber-300 flex items-center gap-2">
+          <span>🎨</span>
+          <span>3. Farb-Pool verwalten ({{ round.colors.length || 0 }} Farben aktiv)</span>
+        </h4>
+        <app-button
+          variant="outline"
+          size="sm"
+          [disabled]="isProcessing"
+          (btnClick)="resetColors.emit()"
+        >
+          🔄 Standardfarben laden
+        </app-button>
+      </div>
       <p class="text-white/70 text-xs">
         Jeder Teilnehmer bekommt bei der Auslosung eine dieser Farben zugewiesen.
       </p>
