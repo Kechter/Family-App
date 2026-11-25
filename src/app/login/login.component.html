@@ -1,4 +1,4 @@
-<div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 bg-canvas text-main">
+<div class="min-h-[100dvh] flex flex-col items-center justify-center px-3.5 py-6 sm:p-6 bg-canvas text-main">
   <div class="max-w-md w-full">
     <app-card extraClass="space-y-6">
       
@@ -16,14 +16,14 @@
         <button
           type="button"
           (click)="setSetupMode(false)"
-          class="flex-1 py-2 px-3 rounded-btn transition-colors text-center cursor-pointer"
+          class="flex-1 min-h-[40px] py-2 px-3 rounded-btn transition-colors text-center cursor-pointer"
           [ngClass]="!setupMode ? 'bg-surface text-brand-primary shadow-btn' : 'text-muted hover:text-main'">
           Anmelden
         </button>
         <button
           type="button"
           (click)="setSetupMode(true)"
-          class="flex-1 py-2 px-3 rounded-btn transition-colors text-center cursor-pointer"
+          class="flex-1 min-h-[40px] py-2 px-3 rounded-btn transition-colors text-center cursor-pointer"
           [ngClass]="setupMode ? 'bg-surface text-brand-primary shadow-btn' : 'text-muted hover:text-main'">
           Neu registrieren
         </button>

@@ -66,10 +66,11 @@
     ></app-wichtel-reveal-card>
 
     <!-- 2. On-Demand Toggle Bar -->
-    <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 pt-2">
+    <div [ngClass]="currentUser?.role === 'admin' ? 'grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center gap-2 sm:gap-3 pt-1' : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1'">
       <app-button
         [variant]="activeTab === 'participants' ? 'primary' : 'outline'"
         size="sm"
+        [extraClass]="currentUser?.role === 'admin' ? 'w-full sm:w-auto' : ''"
         (btnClick)="toggleTab('participants')"
       >
         <span>👥</span>
@@ -80,6 +81,7 @@
         *ngIf="currentUser?.role === 'admin'"
         [variant]="activeTab === 'admin' ? 'primary' : 'outline'"
         size="sm"
+        extraClass="w-full sm:w-auto"
         (btnClick)="toggleTab('admin')"
       >
         <span>⚙️</span>

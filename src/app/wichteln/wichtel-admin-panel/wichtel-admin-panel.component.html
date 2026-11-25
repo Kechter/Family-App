@@ -54,11 +54,12 @@
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
         <!-- Draw / Redraw Button -->
         <app-button
           variant="primary"
           size="md"
+          extraClass="w-full sm:w-auto"
           [disabled]="isProcessing || (round.status === 'open' && participants.length < 2)"
           (btnClick)="requestDraw.emit()"
         >
@@ -71,6 +72,7 @@
           *ngIf="round.status === 'drawn'"
           variant="outline"
           size="md"
+          extraClass="w-full sm:w-auto"
           [disabled]="isProcessing"
           (btnClick)="requestReset.emit()"
         >
@@ -90,7 +92,7 @@
       extraClass="text-white/80 hover:text-white"
     >
       <span>⚙️</span>
-      <span>{{ showAdvanced ? 'Einstellungen verbergen' : '⚙️ Runden-Details, Teilnehmer, Farben & Ausschlüsse anpassen' }}</span>
+      <span>{{ showAdvanced ? 'Einstellungen verbergen' : 'Runden-Details, Teilnehmer, Farben & Ausschlüsse' }}</span>
       <span class="ml-1 text-xs">{{ showAdvanced ? '▲' : '▼' }}</span>
     </app-button>
   </div>
@@ -244,13 +246,13 @@
       </div>
 
       <!-- Custom Color Adder -->
-      <div class="flex flex-wrap items-center gap-3 pt-2">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 pt-2">
         <input
           type="text"
           [value]="customColorName"
           (input)="customColorName = $any($event.target).value"
           placeholder="Name der Wunschfarbe (z.B. Tannengrün)"
-          class="input-dark w-auto flex-grow">
+          class="input-dark w-full sm:w-auto flex-grow">
         <div class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-input px-3 py-1.5">
           <input
             type="color"
@@ -262,6 +264,7 @@
         <app-button
           variant="outline"
           size="sm"
+          extraClass="w-full sm:w-auto"
           (btnClick)="onAddCustomColor()"
         >
           + Farbe hinzufügen
@@ -300,21 +303,21 @@
       </div>
 
       <!-- Add Exclusion Form -->
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto] items-center gap-2.5">
         <select
           [value]="exclUserA"
           (change)="exclUserA = $any($event.target).value"
-          class="input-dark w-auto">
+          class="input-dark w-full">
           <option value="" class="bg-admin text-white">Person A wählen...</option>
           <option *ngFor="let prof of profiles" [value]="prof.id" class="bg-admin text-white">{{ prof.username }}</option>
         </select>
 
-        <span class="text-white/70 font-bold text-sm">zieht nicht</span>
+        <span class="text-white/70 font-bold text-sm text-center sm:text-left">zieht nicht</span>
 
         <select
           [value]="exclUserB"
           (change)="exclUserB = $any($event.target).value"
-          class="input-dark w-auto">
+          class="input-dark w-full">
           <option value="" class="bg-admin text-white">Person B wählen...</option>
           <option *ngFor="let prof of profiles" [value]="prof.id" class="bg-admin text-white">{{ prof.username }}</option>
         </select>
@@ -322,6 +325,7 @@
         <app-button
           variant="outline"
           size="sm"
+          extraClass="w-full sm:w-auto"
           (btnClick)="onAddExclusion()"
         >
           + Ausschluss speichern

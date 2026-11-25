@@ -102,16 +102,20 @@
     </div>
 
     <!-- Action buttons -->
-    <div class="flex items-center justify-end gap-3 pt-2">
+    <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-2">
       <app-button
         type="button"
         variant="ghost"
+        class="w-full sm:w-auto"
+        extraClass="w-full sm:w-auto"
         (btnClick)="close.emit()">
         Abbrechen
       </app-button>
       <app-button
         type="submit"
         variant="secondary"
+        class="w-full sm:w-auto"
+        extraClass="w-full sm:w-auto"
         [loading]="isSaving"
         [disabled]="isSaving || !newEvent.title.trim() || !newEvent.event_date.trim()">
         <span>💾</span>

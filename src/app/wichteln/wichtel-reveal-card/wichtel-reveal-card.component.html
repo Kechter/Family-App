@@ -33,7 +33,7 @@
     <!-- Subcase 2A: NOT REVEALED YET (Gift Box waiting to be unwrapped) -->
     <app-card
       *ngIf="!assignment.revealed"
-      extraClass="text-center p-8 sm:p-12 border-2 border-dashed border-brand-primary/40 relative overflow-hidden"
+      extraClass="text-center p-6 sm:p-10 border-2 border-dashed border-brand-primary/40 relative overflow-hidden"
     >
       <div class="max-w-md mx-auto space-y-6">
         <div class="relative inline-block">
@@ -99,8 +99,8 @@
                 <span>✨</span>
                 <span>Wen du beschenkst:</span>
               </div>
-              <h3 class="font-display text-3xl sm:text-4xl font-black text-main tracking-tight flex items-center gap-3">
-                <span>{{ assignment.partnerName }}</span>
+              <h3 class="font-display text-2xl sm:text-4xl font-black text-main tracking-tight flex flex-wrap items-center gap-2 sm:gap-3 break-words">
+                <span class="min-w-0 break-words">{{ assignment.partnerName }}</span>
                 <span class="text-2xl sm:text-3xl">🎉</span>
               </h3>
               <p class="text-muted text-sm leading-relaxed">
@@ -129,7 +129,7 @@
                 <span>Deine Geschenkfarbe</span>
               </div>
 
-              <h3 class="font-display text-3xl sm:text-4xl font-black tracking-tight drop-shadow-sm">
+              <h3 class="font-display text-2xl sm:text-4xl font-black tracking-tight drop-shadow-sm break-words">
                 {{ assignment.colorName }}
               </h3>
               <div class="mt-1 font-mono text-xs opacity-80 uppercase tracking-widest">
@@ -154,10 +154,11 @@
         </div>
 
         <!-- Small subtle privacy toggle button at bottom/corner -->
-        <div class="flex justify-end pt-1">
+        <div class="flex justify-stretch sm:justify-end pt-1">
           <app-button
             size="sm"
             variant="ghost"
+            extraClass="w-full sm:w-auto"
             (btnClick)="togglePrivacy.emit()"
           >
             <span>🙈</span>

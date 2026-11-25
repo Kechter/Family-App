@@ -11,7 +11,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
       aria-modal="true"
     >
       <div
-        class="card max-w-md w-full space-y-4 shadow-xl"
+        class="card max-w-md w-full max-h-[90dvh] overflow-y-auto space-y-4 shadow-xl"
         (click)="$event.stopPropagation()"
       >
         <div class="flex items-start gap-3">
@@ -22,10 +22,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 pt-2">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-3 pt-2">
           <button
             type="button"
-            class="btn btn-outline"
+            class="btn btn-outline w-full sm:w-auto"
             [disabled]="loading"
             (click)="onCancel()"
           >
@@ -33,7 +33,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
           </button>
           <button
             type="button"
-            class="btn"
+            class="btn w-full sm:w-auto"
             [ngClass]="variant === 'danger' ? 'btn-danger' : 'btn-primary'"
             [disabled]="loading"
             (click)="onConfirm()"

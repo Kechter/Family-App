@@ -16,7 +16,7 @@
       *ngIf="canDelete"
       variant="danger"
       size="sm"
-      extraClass="!p-1 text-sm leading-none"
+      extraClass="min-w-[38px] min-h-[38px] !p-2 text-sm leading-none"
       (btnClick)="deleteRequest.emit(event)"
       title="Termin löschen">
       🗑️
@@ -53,13 +53,14 @@
     </div>
 
     <!-- RSVP Toggle Buttons -->
-    <div class="flex flex-wrap gap-2">
+    <div class="grid grid-cols-3 sm:flex gap-1.5 sm:gap-2">
       <app-button
         size="sm"
         [variant]="userRsvpStatus === 'yes' ? 'secondary' : 'outline'"
         [disabled]="rsvpSaving"
         (btnClick)="onRsvpClick('yes')"
-        extraClass="flex-1 sm:flex-initial">
+        class="w-full sm:w-auto"
+        extraClass="w-full sm:w-auto !px-2 sm:!px-3.5 text-[11px] sm:text-xs">
         <span>✓</span>
         <span>Bin dabei</span>
       </app-button>
@@ -69,7 +70,8 @@
         [variant]="userRsvpStatus === 'maybe' ? 'accent' : 'outline'"
         [disabled]="rsvpSaving"
         (btnClick)="onRsvpClick('maybe')"
-        extraClass="flex-1 sm:flex-initial">
+        class="w-full sm:w-auto"
+        extraClass="w-full sm:w-auto !px-2 sm:!px-3.5 text-[11px] sm:text-xs">
         <span>?</span>
         <span>Vielleicht</span>
       </app-button>
@@ -79,7 +81,8 @@
         [variant]="userRsvpStatus === 'no' ? 'danger' : 'outline'"
         [disabled]="rsvpSaving"
         (btnClick)="onRsvpClick('no')"
-        extraClass="flex-1 sm:flex-initial">
+        class="w-full sm:w-auto"
+        extraClass="w-full sm:w-auto !px-2 sm:!px-3.5 text-[11px] sm:text-xs">
         <span>✕</span>
         <span>Kann nicht</span>
       </app-button>

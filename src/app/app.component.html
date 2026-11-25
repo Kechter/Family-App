@@ -6,16 +6,16 @@
 </div>
 
 <!-- Authenticated shell (when logged in and not on login/register) -->
-<div *ngIf="currentUser && !isLoginPage" class="min-h-screen flex flex-col bg-canvas text-main">
+<div *ngIf="currentUser && !isLoginPage" class="min-h-[100dvh] flex flex-col bg-canvas text-main">
   <!-- Top Header -->
   <header class="app-header shadow-xs">
-    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-3 sm:gap-4">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
       <!-- Logo + Brand Name -->
-      <a routerLink="/wichteln" class="flex items-center gap-3 group transition-transform active:scale-95 flex-shrink-0">
-        <img src="assets/icon.svg" alt="Familien-App Icon" class="w-10 h-10 drop-shadow-sm group-hover:scale-105 transition-transform" />
+      <a routerLink="/wichteln" class="flex items-center gap-2 sm:gap-3 group transition-transform active:scale-95 flex-shrink-0">
+        <img src="assets/icon.svg" alt="Familien-App Icon" class="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-sm group-hover:scale-105 transition-transform" />
         <div class="flex flex-col">
-          <span class="font-display font-bold text-lg text-main leading-tight tracking-tight group-hover:text-brand-primary transition-colors">Familien-App</span>
-          <span class="text-[11px] text-muted font-medium">Gemeinsam durch das Jahr</span>
+          <span class="font-display font-bold text-base sm:text-lg text-main leading-tight tracking-tight group-hover:text-brand-primary transition-colors">Familien-App</span>
+          <span class="hidden sm:block text-[11px] text-muted font-medium">Gemeinsam durch das Jahr</span>
         </div>
       </a>
 
@@ -48,18 +48,18 @@
       </nav>
 
       <!-- Right Actions: User Pill & Logout -->
-      <div class="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+      <div class="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
         <!-- Current user pill -->
         <a routerLink="/profile" 
-           class="flex items-center gap-2 pl-1.5 pr-3 py-1 bg-surface-alt hover:bg-surface rounded-full border border-border transition-colors shadow-xs"
+           class="flex items-center gap-2 pl-1.5 pr-2.5 sm:pr-3 py-1 bg-surface-alt hover:bg-surface rounded-full border border-border transition-colors shadow-xs"
            title="Mein Profil öffnen">
           <app-avatar [name]="currentUser.username" [color]="currentUser.avatar_color" size="sm"></app-avatar>
-          <span class="text-sm font-semibold text-main max-w-[100px] sm:max-w-[130px] truncate">{{ currentUser.username }}</span>
-          <app-badge *ngIf="currentUser.role === 'admin'" variant="primary" extraClass="text-[10px] py-0.5 px-1.5">Admin</app-badge>
+          <span class="text-sm font-semibold text-main max-w-[85px] sm:max-w-[130px] truncate">{{ currentUser.username }}</span>
+          <app-badge *ngIf="currentUser.role === 'admin'" variant="primary" extraClass="hidden sm:inline-flex text-[10px] py-0.5 px-1.5">Admin</app-badge>
         </a>
 
         <!-- Sign out button -->
-        <app-button variant="ghost" size="sm" (btnClick)="onSignOut()" extraClass="p-2 text-muted hover:text-danger" title="Abmelden">
+        <app-button variant="ghost" size="sm" (btnClick)="onSignOut()" extraClass="min-w-[44px] min-h-[44px] p-2 text-muted hover:text-danger" title="Abmelden">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
@@ -70,7 +70,7 @@
   </header>
 
   <!-- Main Content Area -->
-  <main class="max-w-5xl mx-auto px-4 pt-5 pb-24 md:pb-10 w-full flex-1">
+  <main class="max-w-5xl mx-auto px-3 sm:px-4 pt-4 sm:pt-5 pb-28 md:pb-10 w-full flex-1">
     <router-outlet></router-outlet>
   </main>
 
@@ -106,6 +106,6 @@
 </div>
 
 <!-- Non-authenticated or login route view -->
-<div *ngIf="!currentUser || isLoginPage" class="min-h-screen bg-canvas text-main">
+<div *ngIf="!currentUser || isLoginPage" class="min-h-[100dvh] bg-canvas text-main">
   <router-outlet></router-outlet>
 </div>
