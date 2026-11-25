@@ -770,10 +770,7 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
         return { error, inviteText: '' };
       }
       if (role === 'admin' && data?.user?.id) {
-        await this.supabase!
-          .from('profiles')
-          .update({ role: 'admin' })
-          .eq('id', data.user.id);
+        await this.adminSetUserRole(data.user.id, 'admin');
       }
       return { error: null, inviteText };
     } catch (err) {

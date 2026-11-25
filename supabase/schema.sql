@@ -184,12 +184,29 @@ create policy "Authenticated users can insert profiles"
 drop policy if exists "Authenticated users can update profiles" on public.profiles;
 create policy "Authenticated users can update profiles"
   on public.profiles for update to authenticated
-  using ((select auth.uid()) = id or exists (
-    select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'
-  ))
-  with check ((select auth.uid()) = id or exists (
-    select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'admin'
-  ));
+  using ((select auth.uid()) = id)
+  with check ((select auth.uid()) = id);
+
+create or replace function public.prevent_profile_role_escalation()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.role is distinct from old.role and (select auth.uid()) is not null then
+    new.role := old.role;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.prevent_profile_role_escalation() from public, anon, authenticated;
+
+drop trigger if exists before_profile_role_update on public.profiles;
+create trigger before_profile_role_update
+  before update on public.profiles
+  for each row execute function public.prevent_profile_role_escalation();
 
 -- Policies for public.wichtel_rounds
 drop policy if exists "Authenticated users can select wichtel_rounds" on public.wichtel_rounds;
