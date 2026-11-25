@@ -435,7 +435,11 @@ export class SupabaseService {
       return true;
     }
     const { data } = await this.supabase!.auth.getSession();
-    return Boolean(data.session?.user);
+    if (!data.session?.user) {
+      return false;
+    }
+    await this.getCurrentProfile();
+    return true;
   }
 
   async signIn(email: string, password: string): Promise<{ data: any; error: any }> {
@@ -812,10 +816,13 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
 
     const { data: participantsData, error: pError } = await this.supabase!
       .from('wichtel_participants')
-      .select('*, profile:profiles(*)')
+      .select('*, profile:profiles!wichtel_participants_user_id_fkey(*)')
       .eq('round_id', round.id);
 
     if (pError || !participantsData) {
+      if (pError) {
+        console.error('Error loading wichtel participants:', pError);
+      }
       return { round, participants: [] };
     }
 
@@ -1176,7 +1183,7 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
   }
 
   async getMyWichtelAssignment(roundId: string): Promise<WichtelAssignmentView | null> {
-    const currentUser = this.currentUser$.value;
+    const currentUser = this.currentUser$.value || (await this.getCurrentProfile());
     if (!currentUser) return null;
 
     const { round, participants } = await this.getActiveWichtelRound();
@@ -1252,7 +1259,7 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
   async createEvent(
     event: Omit<FamilyEvent, 'id' | 'created_at' | 'attendees'>
   ): Promise<{ data: FamilyEvent | null; error: any }> {
-    const currentUser = this.currentUser$.value;
+    const currentUser = this.currentUser$.value || (await this.getCurrentProfile());
     const attendees: Record<string, RsvpStatus> = currentUser
       ? { [currentUser.id]: 'yes' }
       : {};
@@ -1312,7 +1319,7 @@ Viel Spaß beim Wichteln und Planen unserer Familientreffen! 🎁`;
   }
 
   async toggleRsvp(eventId: string, status: RsvpStatus): Promise<{ error: any }> {
-    const currentUser = this.currentUser$.value;
+    const currentUser = this.currentUser$.value || (await this.getCurrentProfile());
     if (!currentUser) {
       return { error: new Error('Nicht angemeldet.') };
     }

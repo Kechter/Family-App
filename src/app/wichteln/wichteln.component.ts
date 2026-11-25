@@ -348,12 +348,12 @@ export class WichtelnComponent implements OnInit, OnDestroy {
       const { error } = await this.supabase.drawWichtelRound(this.round.id);
       if (error) throw error;
 
-      this.showDrawConfirm = false;
       this.adminSuccess = '🎉 Auslosung erfolgreich abgeschlossen! Alle Wichtelpartner wurden zugewiesen.';
       await this.loadAll();
     } catch (err: any) {
       this.adminError = err?.message || 'Fehler bei der Auslosung.';
     } finally {
+      this.showDrawConfirm = false;
       this.isProcessingAction = false;
     }
   }
@@ -377,12 +377,12 @@ export class WichtelnComponent implements OnInit, OnDestroy {
       const { error } = await this.supabase.resetWichtelRound(this.round.id);
       if (error) throw error;
 
-      this.showResetConfirm = false;
       this.adminSuccess = 'Wichtelrunde wurde zurückgesetzt. Der Status ist wieder "offen".';
       await this.loadAll();
     } catch (err: any) {
       this.adminError = err?.message || 'Fehler beim Zurücksetzen der Runde.';
     } finally {
+      this.showResetConfirm = false;
       this.isProcessingAction = false;
     }
   }
